@@ -1,36 +1,112 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🏎 Tuner AI - The Amazon of Car Customization
 
-## Getting Started
+Transform your car with AI-powered customization. Upload a photo, swap wheels, adjust stance, and visualize your dream build in seconds.
 
-First, run the development server:
+## 🎯 Vision
 
+A digital playground where car culture meets high-precision AI. Solve "fitment anxiety" and "vision block" by transforming driveway photos into professional, modified renders using real-world parts.
+
+## ✨ Features (MVP - Phase 1)
+
+- **Guided Upload**: Auto-detect vehicle make/model/angle
+- **Studio-fication**: AI-powered background removal and enhancement
+- **Wheel & Stance Swapping**: Visualize modifications with real parts
+- **Hero Platforms**: Porsche 911, Tesla Model 3/Y, Honda Civic Type R, Mazda Miata, VW GTI
+
+## 🛠 Tech Stack
+
+- **Frontend**: Next.js 15 (App Router), TypeScript, Tailwind CSS, Framer Motion
+- **AI Pipeline**:
+  - Vision Agent (vehicle detection)
+  - SAM 2 (segmentation)
+  - ControlNet (geometry lock)
+  - Flux-1-Fill (generative fill)
+  - IC-Light (relighting)
+- **Storage**: Vercel Blob (images) + Supabase (user data)
+- **Deployment**: Vercel
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+- API keys for AI services (Replicate/Modal)
+
+### Installation
+
+1. Clone and install dependencies:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd tuner-ai
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Set up environment variables:
+```bash
+cp .env.example .env.local
+# Edit .env.local with your API keys
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Run the development server:
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Open [http://localhost:3000](http://localhost:3000)
 
-## Learn More
+## 📁 Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+tuner-ai/
+├── app/
+│   ├── api/
+│   │   └── process-car/      # AI pipeline endpoint
+│   ├── globals.css            # Automotive dark mode theme
+│   └── page.tsx               # Landing page
+├── components/
+│   └── FileUpload.tsx         # Drag-and-drop upload component
+├── .env.local                 # API keys (not in git)
+└── .env.example               # Template for environment variables
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🗺 Roadmap
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Phase 1 (MVP) ✅
+- [x] Project scaffolding
+- [x] Landing page with automotive aesthetic
+- [x] File upload component
+- [x] API route structure
+- [ ] SAM 2 integration (Mission 2)
+- [ ] Flux-1-Fill integration (Mission 3)
 
-## Deploy on Vercel
+### Phase 2 (Dreamer)
+- [ ] Environment swapping (Tokyo Nights, Track Day, Mountain Pass)
+- [ ] Build Card social generator
+- [ ] AI chat "Style My Car"
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Phase 3 (Monetization)
+- [ ] Affiliate integration (eBay Partner Network)
+- [ ] Direct dropshipping (Turn 14 API)
+- [ ] Parts mapping system
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🎨 Design Philosophy
+
+**Automotive Dark Mode**: Racing-inspired aesthetic with red/orange accents, smooth animations, and high-contrast UI that puts your car front and center.
+
+## 📝 Mission Progress
+
+- ✅ Mission 1: Project Scaffolding (Complete)
+- ⏳ Mission 2: Masking & Vision Integration (Next)
+- ⏳ Mission 3: Flux-1-Fill Logic (Coming)
+
+## 🤝 Contributing
+
+This is a solo project in active development. Check back for contribution guidelines as the project matures.
+
+## 📄 License
+
+MIT License - See LICENSE file for details
+
+---
+
+**Built with Claude Code** | © 2025 TunerAI
