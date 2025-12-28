@@ -561,27 +561,68 @@ export default function EditorPage() {
                     <div className={`flex-1 min-h-0 flex ${originalImage ? "items-center justify-center overflow-hidden p-0 md:px-6 md:pb-6" : "p-1 md:p-6"}`}>
                         {!originalImage ? (
                             <FileUpload
-                                onSuccess={(url) => {
+                                onSuccess={async (url) => {
                                     setOriginalImage(url);
                                     setWheelLayers({});
                                     setPaintLayers({});
                                     setViewingOriginal(false);
                                     setSelectedWheel(null);
                                     setSelectedPaint(null);
+
+                                    // Keep loading states true until masks are ready
+                                    setIsLoadingWheelMask(true);
+                                    setIsLoadingBodyMask(true);
+
+                                    // Check if masks are already available
                                     const storedWheelMask = sessionStorage.getItem("tuner-ai-wheel-mask");
                                     const storedBodyMask = sessionStorage.getItem("tuner-ai-body-mask");
+
                                     if (storedWheelMask) {
                                         setWheelMask(storedWheelMask);
                                         setIsLoadingWheelMask(false);
                                         sessionStorage.removeItem("tuner-ai-wheel-mask");
-                                    } else {
-                                        setIsLoadingWheelMask(false);
                                     }
                                     if (storedBodyMask) {
                                         setBodyMask(storedBodyMask);
                                         setIsLoadingBodyMask(false);
                                         sessionStorage.removeItem("tuner-ai-body-mask");
-                                    } else {
+                                    }
+
+                                    // If detection is still in progress, wait for it
+                                    if (sessionStorage.getItem("tuner-ai-detection-in-progress")) {
+                                        console.log("[Editor] Detection in progress, waiting for masks...");
+                                        const maxWait = 60000;
+                                        const pollInterval = 500;
+                                        const startTime = Date.now();
+
+                                        while (Date.now() - startTime < maxWait) {
+                                            if (!sessionStorage.getItem("tuner-ai-detection-in-progress")) {
+                                                // Detection finished - load masks
+                                                const newWheelMask = sessionStorage.getItem("tuner-ai-wheel-mask");
+                                                const newBodyMask = sessionStorage.getItem("tuner-ai-body-mask");
+
+                                                if (newWheelMask) {
+                                                    setWheelMask(newWheelMask);
+                                                    sessionStorage.removeItem("tuner-ai-wheel-mask");
+                                                }
+                                                if (newBodyMask) {
+                                                    setBodyMask(newBodyMask);
+                                                    sessionStorage.removeItem("tuner-ai-body-mask");
+                                                }
+                                                setIsLoadingWheelMask(false);
+                                                setIsLoadingBodyMask(false);
+                                                console.log("[Editor] Masks loaded from detection");
+                                                return;
+                                            }
+                                            await new Promise(r => setTimeout(r, pollInterval));
+                                        }
+                                        // Timeout
+                                        setIsLoadingWheelMask(false);
+                                        setIsLoadingBodyMask(false);
+                                        console.log("[Editor] Timeout waiting for masks");
+                                    } else if (!storedWheelMask && !storedBodyMask) {
+                                        // Detection not in progress and no masks - they failed
+                                        setIsLoadingWheelMask(false);
                                         setIsLoadingBodyMask(false);
                                     }
                                 }}
@@ -642,27 +683,40 @@ export default function EditorPage() {
                             {[
                                 { id: "wheels", label: "Wheels" },
                                 { id: "paint", label: "Exterior Color" }
-                            ].map((tab) => (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setActiveTab(tab.id)}
-                                    disabled={isProcessing}
-                                    className={`flex-1 py-2 text-xs md:text-sm font-medium rounded-md transition-all ${activeTab === tab.id
-                                        ? "bg-zinc-800 text-white shadow-sm"
-                                        : "text-zinc-500 hover:text-zinc-300"
-                                        } ${isProcessing ? "opacity-50 cursor-not-allowed" : ""}`}
-                                >
-                                    {tab.label}
-                                </button>
-                            ))}
+                            ].map((tab) => {
+                                const isBlocked = isProcessing || (originalImage && (isLoadingWheelMask || isLoadingBodyMask));
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveTab(tab.id)}
+                                        disabled={!!isBlocked}
+                                        className={`flex-1 py-2 text-xs md:text-sm font-medium rounded-md transition-all ${activeTab === tab.id
+                                            ? "bg-zinc-800 text-white shadow-sm"
+                                            : "text-zinc-500 hover:text-zinc-300"
+                                            } ${isBlocked ? "opacity-50 cursor-not-allowed" : ""}`}
+                                    >
+                                        {tab.label}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
                     {/* Content area - shows wheel/color options, min height ensures visibility on mobile */}
-                    <div className={`p-2 pb-6 md:p-4 md:pb-4 md:space-y-4 md:overflow-y-auto md:flex-1 min-h-[120px] md:min-h-0 ${!originalImage ? "opacity-20 pointer-events-none blur-sm" : "opacity-100"}`}>
+                    <div className={`relative p-2 pb-6 md:p-4 md:pb-4 md:space-y-4 md:overflow-y-auto md:flex-1 min-h-[120px] md:min-h-0 ${!originalImage ? "opacity-20 pointer-events-none blur-sm" : "opacity-100"}`}>
                         {!originalImage && (
                             <div className="absolute inset-0 z-20 flex items-center justify-center p-6 text-center">
                                 <p className="text-zinc-500 text-sm font-medium">Upload a car photo to unlock tuning tools</p>
+                            </div>
+                        )}
+
+                        {/* Loading overlay when masks are not ready - mobile only */}
+                        {originalImage && (isLoadingWheelMask || isLoadingBodyMask) && (
+                            <div className="md:hidden absolute inset-0 z-30 bg-zinc-950/90 backdrop-blur-sm flex items-center justify-center">
+                                <div className="flex items-center gap-2 text-blue-400">
+                                    <div className="w-4 h-4 rounded-full border-2 border-blue-400 border-t-transparent animate-spin"></div>
+                                    <span className="text-sm font-medium">Detecting regions...</span>
+                                </div>
                             </div>
                         )}
 
