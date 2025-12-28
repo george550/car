@@ -15,7 +15,7 @@ const WHEEL_CONFIG: Record<string, { refImage: string; description: string }> = 
   },
   "19-diamond-cut": {
     refImage: "/wheels/19-diamond.png",
-    description: "19-inch diamond-cut dual-tone alloy wheels",
+    description: "19-inch multi-spoke mesh wheels with geometric lattice pattern, machined silver finish with dark accents, Genesis center cap",
   },
   "18-diamond-cut": {
     refImage: "/wheels/18-diamond.png",
@@ -94,7 +94,8 @@ export async function POST(request: NextRequest) {
 
     // Build natural language prompt that describes both images
     // Nano Banana Pro: be specific about only modifying foreground vehicle rims
-    const prompt = `Replace the rims of the vehicle in the foreground with the rim from the attached reference photo. The reference shows ${config.description}. Make it seem natural. Don't replace or edit anything else in the original photo except for the rims on only the vehicle from the foreground.`;
+    // IMPORTANT: Emphasize copying EXACT design from reference, not just a similar style
+    const prompt = `Replace the rims on the car in the foreground with the EXACT wheel design from the reference image. The reference shows ${config.description}. Copy the precise spoke pattern, finish, and details from the reference wheel exactly. Adjust the perspective to match the car's angle. Keep the tire sidewalls and everything else in the photo unchanged.`;
 
     console.log("[replace-wheels] Calling Nano Banana with reference image...");
     console.log("[replace-wheels] Prompt:", prompt);

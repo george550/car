@@ -787,11 +787,19 @@ export default function EditorPage() {
                                     const storedBodyMask = sessionStorage.getItem("tuner-ai-body-mask");
                                     if (storedWheelMask) {
                                         setWheelMask(storedWheelMask);
+                                        setIsLoadingWheelMask(false);
                                         sessionStorage.removeItem("tuner-ai-wheel-mask");
+                                    } else {
+                                        // No mask - detection either failed or still in progress
+                                        setIsLoadingWheelMask(false);
                                     }
                                     if (storedBodyMask) {
                                         setBodyMask(storedBodyMask);
+                                        setIsLoadingBodyMask(false);
                                         sessionStorage.removeItem("tuner-ai-body-mask");
+                                    } else {
+                                        // No mask - detection either failed or still in progress
+                                        setIsLoadingBodyMask(false);
                                     }
                                 }}
                             />

@@ -144,7 +144,7 @@ export async function processQwenImageEdit(carImage: string, wheelImage: string,
                 prompt,
                 image_input: [carImage, wheelImage],
                 aspect_ratio: "match_input_image",
-                resolution: "1K",
+                resolution: "2K",  // Higher res for better wheel detail
                 safety_filter_level: "block_only_high",
                 output_format: "png",
             },
