@@ -140,6 +140,10 @@ export default function EditorPage() {
     // Body mask state (for paint operations) - cached from FileUpload
     const [bodyMask, setBodyMask] = useState<string | null>(null);
 
+    // Loading states for masks
+    const [isLoadingWheelMask, setIsLoadingWheelMask] = useState(true);
+    const [isLoadingBodyMask, setIsLoadingBodyMask] = useState(true);
+
     // Error state for displaying issues
     const [error, setError] = useState<string | null>(null);
 
@@ -157,11 +161,13 @@ export default function EditorPage() {
         if (storedWheelMask) {
             console.log("[Editor] Loading cached wheel mask");
             setWheelMask(storedWheelMask);
+            setIsLoadingWheelMask(false);
             sessionStorage.removeItem("tuner-ai-wheel-mask");
         }
         if (storedBodyMask) {
             console.log("[Editor] Loading cached body mask");
             setBodyMask(storedBodyMask);
+            setIsLoadingBodyMask(false);
             sessionStorage.removeItem("tuner-ai-body-mask");
         }
 
@@ -169,6 +175,10 @@ export default function EditorPage() {
         if (sessionStorage.getItem("tuner-ai-detection-in-progress")) {
             console.log("[Editor] Waiting for FileUpload detection to complete...");
             waitForMasks();
+        } else {
+            // Detection not in progress - if masks aren't loaded, they failed
+            if (!storedWheelMask) setIsLoadingWheelMask(false);
+            if (!storedBodyMask) setIsLoadingBodyMask(false);
         }
 
         async function waitForMasks() {
@@ -190,11 +200,16 @@ export default function EditorPage() {
                         setBodyMask(newBodyMask);
                         sessionStorage.removeItem("tuner-ai-body-mask");
                     }
+                    setIsLoadingWheelMask(false);
+                    setIsLoadingBodyMask(false);
                     console.log("[Editor] Masks loaded from FileUpload detection");
                     return;
                 }
                 await new Promise(r => setTimeout(r, pollInterval));
             }
+            // Timeout - stop loading states
+            setIsLoadingWheelMask(false);
+            setIsLoadingBodyMask(false);
             console.log("[Editor] Timeout waiting for masks");
         }
     }, [originalImage]);
@@ -207,6 +222,10 @@ export default function EditorPage() {
 
     const handleWheelClick = (wheel: { id: string; name: string; prompt: string }) => {
         if (isProcessing) return;
+        if (isLoadingWheelMask) {
+            setError("Please wait - detecting wheels...");
+            return;
+        }
 
         console.log("[handleWheelClick]", { wheelId: wheel.id, hasLayer: !!wheelLayers[wheel.id], currentSelected: selectedWheel, hasMask: !!wheelMask });
 
@@ -236,6 +255,10 @@ export default function EditorPage() {
 
     const handlePaintClick = (paint: { id: string; name: string; prompt: string }) => {
         if (isProcessing) return;
+        if (isLoadingBodyMask) {
+            setError("Please wait - detecting body...");
+            return;
+        }
 
         console.log("[handlePaintClick]", { paintId: paint.id, hasLayer: !!paintLayers[paint.id], currentSelected: selectedPaint, hasBodyMask: !!bodyMask });
 
@@ -443,7 +466,12 @@ export default function EditorPage() {
 
                     <div className="flex items-center gap-4">
                         {isProcessing && <span className="text-xs text-red-500 animate-pulse">Generating...</span>}
-                        {wheelMask && !isProcessing && <span className="text-xs text-green-500">Wheels detected</span>}
+                        {(isLoadingWheelMask || isLoadingBodyMask) && !isProcessing && (
+                            <span className="text-xs text-blue-400 animate-pulse">Detecting regions...</span>
+                        )}
+                        {wheelMask && bodyMask && !isProcessing && !isLoadingWheelMask && !isLoadingBodyMask && (
+                            <span className="text-xs text-green-500">Ready</span>
+                        )}
                         <button
                             onClick={() => router.push("/studio")}
                             className="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-lg text-sm font-medium hover:bg-zinc-700 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
@@ -563,22 +591,24 @@ export default function EditorPage() {
                                             <div key={i} className="group relative">
                                                 <button
                                                     onClick={() => handleWheelClick(wheel)}
-                                                    disabled={isProcessing}
+                                                    disabled={isProcessing || isLoadingWheelMask}
                                                     onMouseEnter={(e) => {
                                                         const rect = e.currentTarget.getBoundingClientRect();
                                                         setTooltip({
-                                                            text: wheel.description,
+                                                            text: isLoadingWheelMask ? "Detecting wheels..." : wheel.description,
                                                             title: wheel.name,
                                                             top: rect.top
                                                         });
                                                     }}
                                                     onMouseLeave={() => setTooltip({ text: null, top: 0, title: "" })}
                                                     className={`w-full aspect-square bg-zinc-900 rounded-lg border cursor-pointer transition-all flex flex-col items-center justify-center p-1 text-center group overflow-hidden relative ${
-                                                        isVisible
-                                                            ? "border-red-500 bg-zinc-800"
-                                                            : isSelected
-                                                                ? "border-red-500/50 bg-zinc-800/50 opacity-60"
-                                                                : "border-zinc-800 hover:border-red-500/50 hover:bg-zinc-800"
+                                                        isLoadingWheelMask
+                                                            ? "border-zinc-800 opacity-50 cursor-wait"
+                                                            : isVisible
+                                                                ? "border-red-500 bg-zinc-800"
+                                                                : isSelected
+                                                                    ? "border-red-500/50 bg-zinc-800/50 opacity-60"
+                                                                    : "border-zinc-800 hover:border-red-500/50 hover:bg-zinc-800"
                                                         }`}
                                                 >
                                                     <div className="flex-1 w-full relative mb-1 flex items-center justify-center">
@@ -630,15 +660,17 @@ export default function EditorPage() {
                                                 <button
                                                     key={color.id}
                                                     onClick={() => handlePaintClick(color)}
-                                                    disabled={isProcessing}
+                                                    disabled={isProcessing || isLoadingBodyMask}
                                                     className={`group relative aspect-square rounded-lg border-2 transition-all overflow-hidden ${
-                                                        isVisible
-                                                            ? "border-red-500 ring-2 ring-red-500/50"
-                                                            : isSelected
-                                                                ? "border-red-500/50 ring-1 ring-red-500/30 opacity-60"
-                                                                : "border-zinc-700 hover:border-red-500/50"
+                                                        isLoadingBodyMask
+                                                            ? "border-zinc-700 opacity-50 cursor-wait"
+                                                            : isVisible
+                                                                ? "border-red-500 ring-2 ring-red-500/50"
+                                                                : isSelected
+                                                                    ? "border-red-500/50 ring-1 ring-red-500/30 opacity-60"
+                                                                    : "border-zinc-700 hover:border-red-500/50"
                                                     }`}
-                                                    title={color.name}
+                                                    title={isLoadingBodyMask ? "Detecting body..." : color.name}
                                                 >
                                                     <div
                                                         className="absolute inset-0"
@@ -671,15 +703,17 @@ export default function EditorPage() {
                                                 <button
                                                     key={color.id}
                                                     onClick={() => handlePaintClick(color)}
-                                                    disabled={isProcessing}
+                                                    disabled={isProcessing || isLoadingBodyMask}
                                                     className={`group relative aspect-square rounded-lg border-2 transition-all overflow-hidden ${
-                                                        isVisible
-                                                            ? "border-red-500 ring-2 ring-red-500/50"
-                                                            : isSelected
-                                                                ? "border-red-500/50 ring-1 ring-red-500/30 opacity-60"
-                                                                : "border-zinc-700 hover:border-red-500/50"
+                                                        isLoadingBodyMask
+                                                            ? "border-zinc-700 opacity-50 cursor-wait"
+                                                            : isVisible
+                                                                ? "border-red-500 ring-2 ring-red-500/50"
+                                                                : isSelected
+                                                                    ? "border-red-500/50 ring-1 ring-red-500/30 opacity-60"
+                                                                    : "border-zinc-700 hover:border-red-500/50"
                                                     }`}
-                                                    title={color.name}
+                                                    title={isLoadingBodyMask ? "Detecting body..." : color.name}
                                                 >
                                                     <div
                                                         className="absolute inset-0"
