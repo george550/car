@@ -41,22 +41,22 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <main className="max-w-7xl mx-auto px-6 py-20">
-        <div className="text-center space-y-8">
+      {/* Hero Section - Compact on mobile to keep CTA above fold */}
+      <main className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-20">
+        <div className="text-center space-y-4 md:space-y-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-6xl md:text-7xl font-bold tracking-tight mb-4">
+            <h2 className="text-4xl md:text-7xl font-bold tracking-tight mb-2 md:mb-4">
               Your Dream Build,
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-orange-500 to-red-500">
                 Visualized in Seconds
               </span>
             </h2>
-            <p className="text-xl text-zinc-400 max-w-2xl mx-auto mt-6">
+            <p className="text-base md:text-xl text-zinc-400 max-w-2xl mx-auto mt-3 md:mt-6">
               Transform your car with AI-powered customization. Upload a photo, swap wheels,
               adjust stance, and see your vision come to life.
             </p>
@@ -71,10 +71,10 @@ export default function Home() {
           />
 
           {/* CTA Button */}
-          <div className="pt-8">
+          <div className="pt-4 md:pt-8">
             <button
               onClick={handleStartClick}
-              className="bg-red-600 hover:bg-red-700 text-white px-12 py-4 rounded-full text-lg font-semibold transition-all hover:scale-105 hover:shadow-lg hover:shadow-red-600/50"
+              className="bg-red-600 hover:bg-red-700 text-white px-10 md:px-12 py-3 md:py-4 rounded-full text-base md:text-lg font-semibold transition-all hover:scale-105 hover:shadow-lg hover:shadow-red-600/50"
             >
               Start Customizing
             </button>
