@@ -406,7 +406,7 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
             onDragLeave={handleDragLeave}
             onClick={handleClick}
             className={`
-              flex-1 border-2 border-dashed rounded-2xl p-4 md:p-12 cursor-pointer flex flex-col justify-between
+              flex-1 border-2 border-dashed rounded-2xl p-3 md:p-12 cursor-pointer flex flex-col
               transition-all duration-300
               ${isDragging
                 ? "border-red-500 bg-red-500/10"
@@ -414,23 +414,23 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
               }
             `}
           >
-            {/* Upload prompt section */}
-            <div className="text-center space-y-2 md:space-y-4 pt-4 md:pt-0">
-              <div className="text-4xl md:text-6xl">📸</div>
-              <h3 className="text-lg md:text-2xl font-semibold">Upload Your Car</h3>
-              <p className="text-zinc-400 max-w-md mx-auto text-xs md:text-base">
+            {/* Upload prompt section - compact */}
+            <div className="text-center space-y-1 md:space-y-4">
+              <div className="text-3xl md:text-6xl">📸</div>
+              <h3 className="text-base md:text-2xl font-semibold">Upload Your Car</h3>
+              <p className="text-zinc-400 text-xs md:text-base">
                 Drop your car photo here, or tap to browse
               </p>
-              <div className="flex flex-wrap justify-center gap-2 text-xs text-zinc-500">
-                <span className="bg-zinc-800 px-2.5 py-1 rounded-full">JPG</span>
-                <span className="bg-zinc-800 px-2.5 py-1 rounded-full">PNG</span>
-                <span className="bg-zinc-800 px-2.5 py-1 rounded-full">WEBP</span>
+              <div className="flex flex-wrap justify-center gap-1.5 text-[10px] md:text-xs text-zinc-500">
+                <span className="bg-zinc-800 px-2 py-0.5 rounded-full">JPG</span>
+                <span className="bg-zinc-800 px-2 py-0.5 rounded-full">PNG</span>
+                <span className="bg-zinc-800 px-2 py-0.5 rounded-full">WEBP</span>
               </div>
             </div>
 
-            {/* Sample images section - takes remaining space */}
-            <div className="pt-4 md:pt-6 border-t border-zinc-800 mt-4">
-              <p className="text-xs text-zinc-500 mb-2 md:mb-4 text-center">Or select a sample image</p>
+            {/* Sample images section - compact, no extra space */}
+            <div className="pt-3 md:pt-6 border-t border-zinc-800 mt-3 md:mt-4">
+              <p className="text-[10px] md:text-xs text-zinc-500 mb-2 text-center">Or select a sample image</p>
               {/* 2 per row on mobile, 4 on desktop */}
               <div className="grid grid-cols-2 md:flex md:justify-center gap-2 md:gap-4">
                 {sampleImages.map((src, index) => (
@@ -440,7 +440,7 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
                       e.stopPropagation();
                       handleSampleClick(src);
                     }}
-                    className="relative aspect-[16/10] md:w-44 md:h-28 rounded-lg overflow-hidden border-2 border-zinc-700 hover:border-red-500 active:border-red-500 transition-colors group"
+                    className="relative aspect-[16/9] md:w-44 md:h-28 rounded-lg overflow-hidden border-2 border-zinc-700 hover:border-red-500 active:border-red-500 transition-colors group"
                   >
                     <Image
                       src={src}
