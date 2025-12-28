@@ -82,11 +82,14 @@ export async function POST(request: NextRequest) {
 
     // Get wheel reference image (fetch from public folder)
     const config = WHEEL_CONFIG[normalizedWheel];
-    const wheelRefUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}${config.refImage}`;
-    console.log(`[replace-wheels] Fetching wheel reference: ${config.refImage}`);
+    // Use request URL origin to construct absolute URL (works on Vercel and localhost)
+    const origin = request.nextUrl.origin;
+    const wheelRefUrl = `${origin}${config.refImage}`;
+    console.log(`[replace-wheels] Fetching wheel reference: ${wheelRefUrl}`);
 
     const wheelRefResponse = await fetch(wheelRefUrl);
     if (!wheelRefResponse.ok) {
+      console.error(`[replace-wheels] Failed to fetch wheel reference: ${wheelRefResponse.status} from ${wheelRefUrl}`);
       throw new Error(`Failed to fetch wheel reference: ${wheelRefResponse.status}`);
     }
     const wheelRefBuffer = await wheelRefResponse.arrayBuffer();
