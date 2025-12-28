@@ -1,15 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import FileUpload from "@/components/FileUpload";
 
 export default function Home() {
-  const [showUpload, setShowUpload] = useState(false);
-
+  const router = useRouter();
   const handleStartClick = () => {
-    console.log("Start Customizing clicked!");
-    setShowUpload(true);
+    router.push("/editor");
   };
 
   return (
@@ -21,7 +20,7 @@ export default function Home() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center gap-3 cursor-pointer"
-            onClick={() => setShowUpload(false)}
+            onClick={() => router.push("/")}
           >
             <div className="text-3xl">🏎</div>
             <h1 className="text-2xl font-bold tracking-tight">
@@ -68,23 +67,17 @@ export default function Home() {
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="racing-stripe max-w-md mx-auto"
+            className="racing-stripe max-w-2xl mx-auto"
           />
 
-          {/* CTA Button / Upload Section */}
+          {/* CTA Button */}
           <div className="pt-8">
-            {!showUpload ? (
-              <button
-                onClick={handleStartClick}
-                className="bg-red-600 hover:bg-red-700 text-white px-12 py-4 rounded-full text-lg font-semibold transition-all hover:scale-105 hover:shadow-lg hover:shadow-red-600/50"
-              >
-                Start Customizing (State: {showUpload ? "true" : "false"})
-              </button>
-            ) : (
-              <div className="w-full">
-                <FileUpload />
-              </div>
-            )}
+            <button
+              onClick={handleStartClick}
+              className="bg-red-600 hover:bg-red-700 text-white px-12 py-4 rounded-full text-lg font-semibold transition-all hover:scale-105 hover:shadow-lg hover:shadow-red-600/50"
+            >
+              Start Customizing
+            </button>
           </div>
 
           {/* Feature Grid */}
