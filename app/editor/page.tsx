@@ -527,12 +527,12 @@ export default function EditorPage() {
 
             {/* Main Workspace - Column on mobile, row on desktop */}
             <main className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
-                {/* Canvas Section - Shows first on mobile */}
-                <section className="flex-1 bg-zinc-950/50 flex flex-col relative z-0 order-1 md:order-2 min-h-[40vh] md:min-h-0">
+                {/* Canvas Section - Shows first on mobile, takes remaining space */}
+                <section className="flex-1 bg-zinc-950/50 flex flex-col relative z-0 order-1 md:order-2">
                     {/* Original/Tuned toggle - only show when image is loaded AND has modifications */}
                     {originalImage && (selectedWheel || selectedPaint) && (
-                        <div className="p-1 md:p-4">
-                            <div className={`inline-flex bg-zinc-900 rounded-lg p-1 ${isProcessing ? "opacity-50 pointer-events-none" : ""}`}>
+                        <div className="absolute top-1 left-1 z-10 md:relative md:top-0 md:left-0 md:p-4">
+                            <div className={`inline-flex bg-zinc-900/90 backdrop-blur md:bg-zinc-900 rounded-lg p-1 ${isProcessing ? "opacity-50 pointer-events-none" : ""}`}>
                                 <button
                                     onClick={() => setViewingOriginal(true)}
                                     className={`px-3 md:px-4 py-1.5 md:py-2 rounded-md text-xs md:text-sm font-medium transition-all ${
@@ -557,8 +557,8 @@ export default function EditorPage() {
                         </div>
                     )}
 
-                    {/* Image container - minimal gaps on mobile */}
-                    <div className={`flex-1 flex items-center justify-center ${originalImage ? "px-0 pb-0 md:px-6 md:pb-6" : "p-4 md:p-6"}`}>
+                    {/* Image container - fills available space, no padding on mobile */}
+                    <div className={`flex-1 flex items-center justify-center ${originalImage ? "p-0 md:px-6 md:pb-6" : "p-4 md:p-6"}`}>
                         {!originalImage ? (
                             <FileUpload
                                 onSuccess={(url) => {
@@ -637,9 +637,9 @@ export default function EditorPage() {
                     )}
                 </section>
 
-                {/* Options Panel - Bottom sheet on mobile (hidden until image loaded), sidebar on desktop */}
-                <aside className={`w-full md:w-80 border-t md:border-t-0 md:border-r border-zinc-800 bg-zinc-950 flex flex-col z-10 relative order-2 md:order-1 max-h-[50vh] md:max-h-none ${!originalImage ? "hidden md:flex" : "flex"}`}>
-                    <div className="p-3 md:p-4 border-b border-zinc-800">
+                {/* Options Panel - Bottom sheet on mobile (auto height), sidebar on desktop */}
+                <aside className={`w-full md:w-80 border-t md:border-t-0 md:border-r border-zinc-800 bg-zinc-950 flex flex-col z-10 relative order-2 md:order-1 md:max-h-none ${!originalImage ? "hidden md:flex" : "flex"}`}>
+                    <div className="p-2 md:p-4 border-b border-zinc-800">
                         <div className="flex bg-zinc-900 rounded-lg p-1">
                             {[
                                 { id: "wheels", label: "Wheels" },
@@ -660,17 +660,17 @@ export default function EditorPage() {
                         </div>
                     </div>
 
-                    <div className={`flex-1 overflow-y-auto p-3 md:p-4 space-y-4 transition-all duration-500 ${!originalImage ? "opacity-20 pointer-events-none blur-sm" : "opacity-100"}`}>
+                    <div className={`overflow-y-auto overflow-x-hidden p-2 md:p-4 space-y-3 md:space-y-4 transition-all duration-500 max-h-[35vh] md:max-h-none md:flex-1 ${!originalImage ? "opacity-20 pointer-events-none blur-sm" : "opacity-100"}`}>
                         {!originalImage && (
                             <div className="absolute inset-0 z-20 flex items-center justify-center p-6 text-center">
                                 <p className="text-zinc-500 text-sm font-medium">Upload a car photo to unlock tuning tools</p>
                             </div>
                         )}
                         {activeTab === "wheels" && (
-                            <div className="space-y-3 md:space-y-4">
-                                <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Select Genesis Wheels</h3>
+                            <div className="space-y-2 md:space-y-4">
+                                <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider hidden md:block">Select Genesis Wheels</h3>
                                 {/* Horizontal scroll on mobile, grid on desktop */}
-                                <div className="flex md:grid md:grid-cols-2 gap-3 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 -mx-3 px-3 md:mx-0 md:px-0 snap-x snap-mandatory md:snap-none">
+                                <div className="flex md:grid md:grid-cols-2 gap-2 md:gap-3 overflow-x-auto md:overflow-x-visible pb-1 md:pb-0 -mx-2 px-2 md:mx-0 md:px-0 snap-x snap-mandatory md:snap-none">
                                     {[
                                         {
                                             id: "20-sputtering",
@@ -704,7 +704,7 @@ export default function EditorPage() {
                                         const isSelected = selectedWheel === wheel.id;
                                         const isVisible = isSelected && wheelVisible && !viewingOriginal;
                                         return (
-                                            <div key={i} className="group relative flex-shrink-0 w-32 md:w-auto snap-start">
+                                            <div key={i} className="group relative flex-shrink-0 w-24 md:w-auto snap-start">
                                                 <button
                                                     onClick={() => handleWheelClick(wheel)}
                                                     disabled={isProcessing || isLoadingWheelMask}
@@ -754,14 +754,14 @@ export default function EditorPage() {
                             </div>
                         )}
                         {activeTab === "paint" && (
-                            <div className="space-y-4 md:space-y-6">
-                                <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Exterior Color</h3>
+                            <div className="space-y-3 md:space-y-6">
+                                <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider hidden md:block">Exterior Color</h3>
 
                                 {/* Glossy Colors */}
-                                <div className="space-y-2 md:space-y-3">
+                                <div className="space-y-1.5 md:space-y-3">
                                     <h4 className="text-xs font-medium text-zinc-400">Glossy</h4>
                                     {/* More columns on mobile for compact view */}
-                                    <div className="grid grid-cols-5 md:grid-cols-4 gap-2">
+                                    <div className="grid grid-cols-7 md:grid-cols-4 gap-1.5 md:gap-2">
                                         {[
                                             { id: "vik-black", name: "Vik Black", hex: "#1a1a1a", prompt: "glossy Vik Black paint, deep black metallic finish" },
                                             { id: "himalayan-gray", name: "Himalayan Gray", hex: "#4a5568", prompt: "glossy Himalayan Gray paint, dark gray metallic finish" },
@@ -808,9 +808,9 @@ export default function EditorPage() {
                                 </div>
 
                                 {/* Matte Colors */}
-                                <div className="space-y-2 md:space-y-3">
+                                <div className="space-y-1.5 md:space-y-3">
                                     <h4 className="text-xs font-medium text-zinc-400">Matte</h4>
-                                    <div className="grid grid-cols-5 md:grid-cols-4 gap-2">
+                                    <div className="grid grid-cols-7 md:grid-cols-4 gap-1.5 md:gap-2">
                                         {[
                                             { id: "makalu-gray", name: "Makalu Gray", hex: "#5a6a7a", prompt: "matte Makalu Gray paint, flat gray-blue matte finish, no gloss" },
                                         ].map((color) => {
