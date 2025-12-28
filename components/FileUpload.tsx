@@ -460,8 +460,8 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
             animate={{ opacity: 1 }}
             className="w-full h-full flex flex-col"
           >
-            {/* Main content area - scrollable on mobile */}
-            <div className="flex-1 flex flex-col md:block relative w-full max-w-4xl mx-auto overflow-y-auto md:overflow-visible">
+            {/* Main content area - scrollable on mobile, with bottom padding for fixed CTAs */}
+            <div className="flex-1 flex flex-col md:block relative w-full max-w-4xl mx-auto overflow-y-auto md:overflow-visible pb-24 md:pb-0">
 
               {/* Car Image - Clean on mobile, overlay on desktop */}
               <div className="relative rounded-xl md:rounded-2xl overflow-hidden bg-zinc-900 shadow-2xl shrink-0">
@@ -720,8 +720,8 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
               </div>
             </div>
 
-            {/* Mobile: Docked CTA buttons at bottom - OUTSIDE scrollable area */}
-            <div className="md:hidden shrink-0 px-2 pt-3 pb-2 border-t border-zinc-800 bg-zinc-950">
+            {/* Mobile: FIXED CTA buttons at viewport bottom - always visible */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-3 pt-3 pb-6 border-t border-zinc-800 bg-zinc-950/95 backdrop-blur-sm">
               <div className="flex gap-2 max-w-4xl mx-auto">
                 <button
                   onClick={handleClick}

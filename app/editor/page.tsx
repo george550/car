@@ -527,8 +527,8 @@ export default function EditorPage() {
 
             {/* Main Workspace - Column on mobile, row on desktop */}
             <main className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
-                {/* Canvas Section - Scrollable middle area on mobile */}
-                <section className="flex-1 min-h-0 bg-zinc-950/50 flex flex-col relative z-0 order-1 md:order-2 overflow-y-auto md:overflow-visible">
+                {/* Canvas Section - Scrollable middle area on mobile, with bottom padding for fixed panel */}
+                <section className="flex-1 min-h-0 bg-zinc-950/50 flex flex-col relative z-0 order-1 md:order-2 overflow-y-auto md:overflow-visible pb-[180px] md:pb-0">
                     {/* Original/Tuned toggle - only show when image is loaded AND has modifications */}
                     {originalImage && (selectedWheel || selectedPaint) && (
                         <div className="absolute top-1 left-1 z-10 md:relative md:top-0 md:left-0 md:p-4">
@@ -634,8 +634,8 @@ export default function EditorPage() {
                     )}
                 </section>
 
-                {/* Options Panel - Fixed at bottom on mobile, sidebar on desktop */}
-                <aside className={`w-full md:w-80 border-t md:border-t-0 md:border-r border-zinc-800 bg-zinc-950 flex flex-col z-20 order-2 md:order-1 shrink-0 md:relative md:max-h-none ${!originalImage ? "hidden md:flex" : "flex"}`}>
+                {/* Options Panel - FIXED at viewport bottom on mobile, sidebar on desktop */}
+                <aside className={`w-full md:w-80 border-t md:border-t-0 md:border-r border-zinc-800 bg-zinc-950/95 backdrop-blur-sm md:backdrop-blur-none md:bg-zinc-950 flex flex-col z-50 md:z-10 fixed bottom-0 left-0 right-0 md:relative md:bottom-auto md:left-auto md:right-auto md:order-1 md:max-h-none ${!originalImage ? "hidden md:flex" : "flex"}`}>
                     {/* Tab switcher */}
                     <div className="p-2 md:p-4 border-b border-zinc-800 shrink-0">
                         <div className="flex bg-zinc-900 rounded-lg p-1">
