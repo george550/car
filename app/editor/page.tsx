@@ -557,8 +557,8 @@ export default function EditorPage() {
                         </div>
                     )}
 
-                    {/* Image container - fills available space */}
-                    <div className={`flex-1 flex items-center justify-center ${originalImage ? "p-0 md:px-6 md:pb-6" : "p-2 md:p-6"}`}>
+                    {/* Image container - fills available space, pinch-zoomable on mobile */}
+                    <div className={`flex-1 flex items-center justify-center overflow-hidden ${originalImage ? "p-0 md:px-6 md:pb-6" : "p-2 md:p-6"}`}>
                         {!originalImage ? (
                             <FileUpload
                                 onSuccess={(url) => {
@@ -588,25 +588,22 @@ export default function EditorPage() {
                             />
                         ) : (
                             <div
-                                className="w-full h-full cursor-zoom-in md:cursor-default"
-                                onClick={() => {
-                                    // Only open zoom on mobile
-                                    if (window.innerWidth < 768) {
-                                        setShowImageZoom(true);
-                                    }
-                                }}
+                                className="w-full h-full overflow-auto overscroll-contain md:overflow-visible"
+                                style={{ touchAction: "pan-x pan-y pinch-zoom" }}
                             >
-                                <EditorCanvas
-                                    ref={canvasRef}
-                                    originalImage={originalImage}
-                                    wheelLayer={currentWheelLayer}
-                                    paintLayer={currentPaintLayer}
-                                    wheelVisible={wheelVisible && !viewingOriginal}
-                                    paintVisible={paintVisible && !viewingOriginal}
-                                    wheelMask={wheelMask}
-                                    bodyMask={bodyMask}
-                                    highlightType={highlightType}
-                                />
+                                <div className="min-w-full min-h-full md:min-w-0 md:min-h-0 flex items-center justify-center">
+                                    <EditorCanvas
+                                        ref={canvasRef}
+                                        originalImage={originalImage}
+                                        wheelLayer={currentWheelLayer}
+                                        paintLayer={currentPaintLayer}
+                                        wheelVisible={wheelVisible && !viewingOriginal}
+                                        paintVisible={paintVisible && !viewingOriginal}
+                                        wheelMask={wheelMask}
+                                        bodyMask={bodyMask}
+                                        highlightType={highlightType}
+                                    />
+                                </div>
                             </div>
                         )}
                     </div>
@@ -637,9 +634,10 @@ export default function EditorPage() {
                     )}
                 </section>
 
-                {/* Options Panel - Bottom sheet on mobile (auto height), sidebar on desktop */}
+                {/* Options Panel - Docked bottom sheet on mobile, sidebar on desktop */}
                 <aside className={`w-full md:w-80 border-t md:border-t-0 md:border-r border-zinc-800 bg-zinc-950 flex flex-col z-10 relative order-2 md:order-1 md:max-h-none ${!originalImage ? "hidden md:flex" : "flex"}`}>
-                    <div className="p-2 md:p-4 border-b border-zinc-800">
+                    {/* Tab switcher */}
+                    <div className="p-2 md:p-4 border-b border-zinc-800 shrink-0">
                         <div className="flex bg-zinc-900 rounded-lg p-1">
                             {[
                                 { id: "wheels", label: "Wheels" },
@@ -660,87 +658,53 @@ export default function EditorPage() {
                         </div>
                     </div>
 
-                    <div className={`overflow-y-auto overflow-x-hidden p-2 md:p-4 space-y-3 md:space-y-4 transition-all duration-500 max-h-[35vh] md:max-h-none md:flex-1 ${!originalImage ? "opacity-20 pointer-events-none blur-sm" : "opacity-100"}`}>
+                    {/* Content area - fixed height on mobile matching wheel card size */}
+                    <div className={`p-2 md:p-4 md:space-y-4 md:overflow-y-auto md:flex-1 ${!originalImage ? "opacity-20 pointer-events-none blur-sm" : "opacity-100"}`}>
                         {!originalImage && (
                             <div className="absolute inset-0 z-20 flex items-center justify-center p-6 text-center">
                                 <p className="text-zinc-500 text-sm font-medium">Upload a car photo to unlock tuning tools</p>
                             </div>
                         )}
+
+                        {/* WHEELS TAB */}
                         {activeTab === "wheels" && (
                             <div className="space-y-2 md:space-y-4">
                                 <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider hidden md:block">Select Genesis Wheels</h3>
                                 {/* Horizontal scroll on mobile, grid on desktop */}
-                                <div className="flex md:grid md:grid-cols-2 gap-2 md:gap-3 overflow-x-auto md:overflow-x-visible pb-1 md:pb-0 -mx-2 px-2 md:mx-0 md:px-0 snap-x snap-mandatory md:snap-none">
+                                <div className="flex md:grid md:grid-cols-2 gap-2 md:gap-3 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 -mx-2 px-2 md:mx-0 md:px-0 snap-x snap-mandatory md:snap-none">
                                     {[
-                                        {
-                                            id: "20-sputtering",
-                                            name: "20\" Sputtering",
-                                            image: "/wheels/20-sputtering.png",
-                                            prompt: "genesis g80 20-inch sputtering wheels, bright chrome finish, complex lattice spoke design, Pirelli Tires",
-                                            description: "20-inch Sputtering Wheels · Front Mono-block (4P) Brakes · Pirelli Tires (245/40R20 (F), 275/35R20 (R))"
-                                        },
-                                        {
-                                            id: "19-hyper-silver",
-                                            name: "19\" Hyper Silver",
-                                            image: "/wheels/19-hyper-silver.png",
-                                            prompt: "genesis g80 19-inch hyper silver wheels type A, 5 spoke split design, elegant silver finish",
-                                            description: "19-inch Hyper Silver Wheels (A) · Front Mono-block (4P) Brakes · Continental Tires (245/45R19 (F), 275/40R19 (R))"
-                                        },
-                                        {
-                                            id: "19-diamond-cut",
-                                            name: "19\" Diamond Cut",
-                                            image: "/wheels/19-diamond.png",
-                                            prompt: "genesis g80 19-inch diamond cutting wheels type B, multi-spoke machined face design",
-                                            description: "19-inch Diamond Cutting Wheels (B) · Front Mono-block (4P) Brakes · Continental Tires (245/45R19 (F), 275/40R19 (R))"
-                                        },
-                                        {
-                                            id: "18-diamond-cut",
-                                            name: "18\" Diamond Cut",
-                                            image: "/wheels/18-diamond.png",
-                                            prompt: "genesis g80 18-inch diamond cutting wheels, 5 double-spoke design, machined finish",
-                                            description: "18-inch Diamond Cutting Wheels · Front Mono-block (4P) Brakes · Pirelli Tires (245/50R18)"
-                                        },
+                                        { id: "20-sputtering", name: "20\" Sputtering", image: "/wheels/20-sputtering.png", prompt: "genesis g80 20-inch sputtering wheels, bright chrome finish, complex lattice spoke design, Pirelli Tires", description: "20-inch Sputtering Wheels · Front Mono-block (4P) Brakes · Pirelli Tires (245/40R20 (F), 275/35R20 (R))" },
+                                        { id: "19-hyper-silver", name: "19\" Hyper Silver", image: "/wheels/19-hyper-silver.png", prompt: "genesis g80 19-inch hyper silver wheels type A, 5 spoke split design, elegant silver finish", description: "19-inch Hyper Silver Wheels (A) · Front Mono-block (4P) Brakes · Continental Tires (245/45R19 (F), 275/40R19 (R))" },
+                                        { id: "19-diamond-cut", name: "19\" Diamond Cut", image: "/wheels/19-diamond.png", prompt: "genesis g80 19-inch diamond cutting wheels type B, multi-spoke machined face design", description: "19-inch Diamond Cutting Wheels (B) · Front Mono-block (4P) Brakes · Continental Tires (245/45R19 (F), 275/40R19 (R))" },
+                                        { id: "18-diamond-cut", name: "18\" Diamond Cut", image: "/wheels/18-diamond.png", prompt: "genesis g80 18-inch diamond cutting wheels, 5 double-spoke design, machined finish", description: "18-inch Diamond Cutting Wheels · Front Mono-block (4P) Brakes · Pirelli Tires (245/50R18)" },
                                     ].map((wheel, i) => {
                                         const isSelected = selectedWheel === wheel.id;
                                         const isVisible = isSelected && wheelVisible && !viewingOriginal;
                                         return (
-                                            <div key={i} className="group relative flex-shrink-0 w-24 md:w-auto snap-start">
+                                            <div key={i} className="group relative flex-shrink-0 w-[100px] md:w-auto snap-start">
                                                 <button
                                                     onClick={() => handleWheelClick(wheel)}
                                                     disabled={isProcessing || isLoadingWheelMask}
                                                     onMouseEnter={(e) => {
                                                         const rect = e.currentTarget.getBoundingClientRect();
-                                                        setTooltip({
-                                                            text: isLoadingWheelMask ? "Detecting wheels..." : wheel.description,
-                                                            title: wheel.name,
-                                                            top: rect.top
-                                                        });
+                                                        setTooltip({ text: isLoadingWheelMask ? "Detecting wheels..." : wheel.description, title: wheel.name, top: rect.top });
                                                     }}
                                                     onMouseLeave={() => setTooltip({ text: null, top: 0, title: "" })}
-                                                    className={`w-full aspect-square bg-zinc-900 rounded-lg border cursor-pointer transition-all flex flex-col items-center justify-center p-1 text-center group overflow-hidden relative ${
-                                                        isLoadingWheelMask
-                                                            ? "border-zinc-800 opacity-50 cursor-wait"
-                                                            : isVisible
-                                                                ? "border-red-500 bg-zinc-800"
-                                                                : isSelected
-                                                                    ? "border-red-500/50 bg-zinc-800/50 opacity-60"
-                                                                    : "border-zinc-800 hover:border-red-500/50 hover:bg-zinc-800"
-                                                        }`}
+                                                    className={`w-full bg-zinc-900 rounded-lg border cursor-pointer transition-all flex flex-col items-center justify-center p-2 text-center group overflow-hidden relative ${
+                                                        isLoadingWheelMask ? "border-zinc-800 opacity-50 cursor-wait"
+                                                            : isVisible ? "border-red-500 bg-zinc-800"
+                                                            : isSelected ? "border-red-500/50 bg-zinc-800/50 opacity-60"
+                                                            : "border-zinc-800 hover:border-red-500/50 hover:bg-zinc-800"
+                                                    }`}
                                                 >
-                                                    <div className="flex-1 w-full relative mb-1 flex items-center justify-center">
-                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                        <img
-                                                            src={wheel.image}
-                                                            alt={wheel.name}
-                                                            className="w-full h-full object-contain scale-[1.3] group-hover:scale-[1.4] transition-transform duration-500 drop-shadow-2xl"
-                                                        />
+                                                    <div className="w-full h-16 md:h-20 relative flex items-center justify-center">
+                                                        <img src={wheel.image} alt={wheel.name} className="w-full h-full object-contain scale-[1.3] group-hover:scale-[1.4] transition-transform duration-500 drop-shadow-2xl" />
                                                     </div>
-                                                    <span className={`text-xs font-medium z-10 relative transition-colors ${isVisible ? "text-white" : isSelected ? "text-zinc-400" : "text-zinc-500 group-hover:text-zinc-300"}`}>
+                                                    <span className={`text-[10px] md:text-xs font-medium mt-1 z-10 relative transition-colors leading-tight ${isVisible ? "text-white" : isSelected ? "text-zinc-400" : "text-zinc-500 group-hover:text-zinc-300"}`}>
                                                         {wheel.name}
                                                     </span>
-
                                                     {isVisible && (
-                                                        <div className="absolute bottom-1 right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center shadow-lg z-20">
+                                                        <div className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center shadow-lg z-20">
                                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3">
                                                                 <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
                                                             </svg>
@@ -753,15 +717,66 @@ export default function EditorPage() {
                                 </div>
                             </div>
                         )}
-                        {activeTab === "paint" && (
-                            <div className="space-y-3 md:space-y-6">
-                                <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider hidden md:block">Exterior Color</h3>
 
-                                {/* Glossy Colors */}
-                                <div className="space-y-1.5 md:space-y-3">
-                                    <h4 className="text-xs font-medium text-zinc-400">Glossy</h4>
-                                    {/* More columns on mobile for compact view */}
-                                    <div className="grid grid-cols-7 md:grid-cols-4 gap-1.5 md:gap-2">
+                        {/* EXTERIOR COLOR TAB */}
+                        {activeTab === "paint" && (
+                            <>
+                                {/* Desktop: Grid layout */}
+                                <div className="hidden md:block space-y-6">
+                                    <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Exterior Color</h3>
+                                    <div className="space-y-3">
+                                        <h4 className="text-xs font-medium text-zinc-400">Glossy</h4>
+                                        <div className="grid grid-cols-4 gap-2">
+                                            {[
+                                                { id: "vik-black", name: "Vik Black", hex: "#1a1a1a", prompt: "glossy Vik Black paint, deep black metallic finish" },
+                                                { id: "himalayan-gray", name: "Himalayan Gray", hex: "#4a5568", prompt: "glossy Himalayan Gray paint, dark gray metallic finish" },
+                                                { id: "adriatic-blue", name: "Adriatic Blue", hex: "#1e3a5f", prompt: "glossy Adriatic Blue paint, deep navy blue metallic finish" },
+                                                { id: "cardiff-green", name: "Cardiff Green", hex: "#2d4a4a", prompt: "glossy Cardiff Green paint, dark teal green metallic finish" },
+                                                { id: "savile-silver", name: "Savile Silver", hex: "#9ca3af", prompt: "glossy Savile Silver paint, light silver metallic finish" },
+                                                { id: "uyuni-white", name: "Uyuni White", hex: "#f5f5f4", prompt: "glossy Uyuni White paint, pearl white finish" },
+                                                { id: "gold-coast", name: "Gold Coast Silver", hex: "#78716c", prompt: "glossy Gold Coast Silver paint, bronze brown metallic finish" },
+                                            ].map((color) => {
+                                                const isSelected = selectedPaint === color.id;
+                                                const isVisible = isSelected && paintVisible && !viewingOriginal;
+                                                return (
+                                                    <button key={color.id} onClick={() => handlePaintClick(color)} disabled={isProcessing || isLoadingBodyMask}
+                                                        className={`group relative aspect-square rounded-lg border-2 transition-all overflow-hidden ${isLoadingBodyMask ? "border-zinc-700 opacity-50 cursor-wait" : isVisible ? "border-red-500 ring-2 ring-red-500/50" : isSelected ? "border-red-500/50 ring-1 ring-red-500/30 opacity-60" : "border-zinc-700 hover:border-red-500/50"}`}
+                                                        title={isLoadingBodyMask ? "Detecting body..." : color.name}>
+                                                        <div className="absolute inset-0" style={{ backgroundColor: color.hex }} />
+                                                        <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-60" />
+                                                        {isVisible && (<div className="absolute bottom-1 right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center shadow-lg z-20"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg></div>)}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <h4 className="text-xs font-medium text-zinc-400">Matte</h4>
+                                        <div className="grid grid-cols-4 gap-2">
+                                            {[{ id: "makalu-gray", name: "Makalu Gray", hex: "#5a6a7a", prompt: "matte Makalu Gray paint, flat gray-blue matte finish, no gloss" }].map((color) => {
+                                                const isSelected = selectedPaint === color.id;
+                                                const isVisible = isSelected && paintVisible && !viewingOriginal;
+                                                return (
+                                                    <button key={color.id} onClick={() => handlePaintClick(color)} disabled={isProcessing || isLoadingBodyMask}
+                                                        className={`group relative aspect-square rounded-lg border-2 transition-all overflow-hidden ${isLoadingBodyMask ? "border-zinc-700 opacity-50 cursor-wait" : isVisible ? "border-red-500 ring-2 ring-red-500/50" : isSelected ? "border-red-500/50 ring-1 ring-red-500/30 opacity-60" : "border-zinc-700 hover:border-red-500/50"}`}
+                                                        title={isLoadingBodyMask ? "Detecting body..." : color.name}>
+                                                        <div className="absolute inset-0" style={{ backgroundColor: color.hex }} />
+                                                        {isVisible && (<div className="absolute bottom-1 right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center shadow-lg z-20"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg></div>)}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Mobile: Horizontal scroll with cards matching wheel size */}
+                                <div className="md:hidden">
+                                    <div className="flex gap-2 overflow-x-auto pb-2 -mx-2 px-2 snap-x snap-mandatory">
+                                        {/* Glossy section header */}
+                                        <div className="flex-shrink-0 w-12 flex items-center justify-center snap-start">
+                                            <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider -rotate-90 whitespace-nowrap">Glossy</span>
+                                        </div>
+                                        {/* Glossy colors */}
                                         {[
                                             { id: "vik-black", name: "Vik Black", hex: "#1a1a1a", prompt: "glossy Vik Black paint, deep black metallic finish" },
                                             { id: "himalayan-gray", name: "Himalayan Gray", hex: "#4a5568", prompt: "glossy Himalayan Gray paint, dark gray metallic finish" },
@@ -769,86 +784,80 @@ export default function EditorPage() {
                                             { id: "cardiff-green", name: "Cardiff Green", hex: "#2d4a4a", prompt: "glossy Cardiff Green paint, dark teal green metallic finish" },
                                             { id: "savile-silver", name: "Savile Silver", hex: "#9ca3af", prompt: "glossy Savile Silver paint, light silver metallic finish" },
                                             { id: "uyuni-white", name: "Uyuni White", hex: "#f5f5f4", prompt: "glossy Uyuni White paint, pearl white finish" },
-                                            { id: "gold-coast", name: "Gold Coast Silver", hex: "#78716c", prompt: "glossy Gold Coast Silver paint, bronze brown metallic finish" },
+                                            { id: "gold-coast", name: "Gold Coast", hex: "#78716c", prompt: "glossy Gold Coast Silver paint, bronze brown metallic finish" },
                                         ].map((color) => {
                                             const isSelected = selectedPaint === color.id;
                                             const isVisible = isSelected && paintVisible && !viewingOriginal;
                                             return (
-                                                <button
-                                                    key={color.id}
-                                                    onClick={() => handlePaintClick(color)}
-                                                    disabled={isProcessing || isLoadingBodyMask}
-                                                    className={`group relative aspect-square rounded-lg border-2 transition-all overflow-hidden ${
-                                                        isLoadingBodyMask
-                                                            ? "border-zinc-700 opacity-50 cursor-wait"
-                                                            : isVisible
-                                                                ? "border-red-500 ring-2 ring-red-500/50"
-                                                                : isSelected
-                                                                    ? "border-red-500/50 ring-1 ring-red-500/30 opacity-60"
-                                                                    : "border-zinc-700 hover:border-red-500/50"
-                                                    }`}
-                                                    title={isLoadingBodyMask ? "Detecting body..." : color.name}
-                                                >
-                                                    <div
-                                                        className="absolute inset-0"
-                                                        style={{ backgroundColor: color.hex }}
-                                                    />
-                                                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-60" />
-                                                    {isVisible && (
-                                                        <div className="absolute bottom-1 right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center shadow-lg z-20">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3">
-                                                                <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
-                                                            </svg>
+                                                <div key={color.id} className="flex-shrink-0 w-[100px] snap-start">
+                                                    <button
+                                                        onClick={() => handlePaintClick(color)}
+                                                        disabled={isProcessing || isLoadingBodyMask}
+                                                        className={`w-full bg-zinc-900 rounded-lg border cursor-pointer transition-all flex flex-col items-center p-2 text-center overflow-hidden relative ${
+                                                            isLoadingBodyMask ? "border-zinc-800 opacity-50 cursor-wait"
+                                                                : isVisible ? "border-red-500 bg-zinc-800"
+                                                                : isSelected ? "border-red-500/50 bg-zinc-800/50 opacity-60"
+                                                                : "border-zinc-800 hover:border-red-500/50 hover:bg-zinc-800"
+                                                        }`}
+                                                    >
+                                                        <div className="w-full h-16 rounded-md overflow-hidden relative">
+                                                            <div className="absolute inset-0" style={{ backgroundColor: color.hex }} />
+                                                            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent" />
                                                         </div>
-                                                    )}
-                                                </button>
+                                                        <span className={`text-[10px] font-medium mt-1.5 z-10 relative transition-colors leading-tight ${isVisible ? "text-white" : isSelected ? "text-zinc-400" : "text-zinc-500"}`}>
+                                                            {color.name}
+                                                        </span>
+                                                        {isVisible && (
+                                                            <div className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center shadow-lg z-20">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3">
+                                                                    <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+                                                                </svg>
+                                                            </div>
+                                                        )}
+                                                    </button>
+                                                </div>
                                             );
                                         })}
-                                    </div>
-                                </div>
-
-                                {/* Matte Colors */}
-                                <div className="space-y-1.5 md:space-y-3">
-                                    <h4 className="text-xs font-medium text-zinc-400">Matte</h4>
-                                    <div className="grid grid-cols-7 md:grid-cols-4 gap-1.5 md:gap-2">
-                                        {[
-                                            { id: "makalu-gray", name: "Makalu Gray", hex: "#5a6a7a", prompt: "matte Makalu Gray paint, flat gray-blue matte finish, no gloss" },
-                                        ].map((color) => {
+                                        {/* Matte section header */}
+                                        <div className="flex-shrink-0 w-12 flex items-center justify-center snap-start">
+                                            <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider -rotate-90 whitespace-nowrap">Matte</span>
+                                        </div>
+                                        {/* Matte colors */}
+                                        {[{ id: "makalu-gray", name: "Makalu Gray", hex: "#5a6a7a", prompt: "matte Makalu Gray paint, flat gray-blue matte finish, no gloss" }].map((color) => {
                                             const isSelected = selectedPaint === color.id;
                                             const isVisible = isSelected && paintVisible && !viewingOriginal;
                                             return (
-                                                <button
-                                                    key={color.id}
-                                                    onClick={() => handlePaintClick(color)}
-                                                    disabled={isProcessing || isLoadingBodyMask}
-                                                    className={`group relative aspect-square rounded-lg border-2 transition-all overflow-hidden ${
-                                                        isLoadingBodyMask
-                                                            ? "border-zinc-700 opacity-50 cursor-wait"
-                                                            : isVisible
-                                                                ? "border-red-500 ring-2 ring-red-500/50"
-                                                                : isSelected
-                                                                    ? "border-red-500/50 ring-1 ring-red-500/30 opacity-60"
-                                                                    : "border-zinc-700 hover:border-red-500/50"
-                                                    }`}
-                                                    title={isLoadingBodyMask ? "Detecting body..." : color.name}
-                                                >
-                                                    <div
-                                                        className="absolute inset-0"
-                                                        style={{ backgroundColor: color.hex }}
-                                                    />
-                                                    {isVisible && (
-                                                        <div className="absolute bottom-1 right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center shadow-lg z-20">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3">
-                                                                <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
-                                                            </svg>
+                                                <div key={color.id} className="flex-shrink-0 w-[100px] snap-start">
+                                                    <button
+                                                        onClick={() => handlePaintClick(color)}
+                                                        disabled={isProcessing || isLoadingBodyMask}
+                                                        className={`w-full bg-zinc-900 rounded-lg border cursor-pointer transition-all flex flex-col items-center p-2 text-center overflow-hidden relative ${
+                                                            isLoadingBodyMask ? "border-zinc-800 opacity-50 cursor-wait"
+                                                                : isVisible ? "border-red-500 bg-zinc-800"
+                                                                : isSelected ? "border-red-500/50 bg-zinc-800/50 opacity-60"
+                                                                : "border-zinc-800 hover:border-red-500/50 hover:bg-zinc-800"
+                                                        }`}
+                                                    >
+                                                        <div className="w-full h-16 rounded-md overflow-hidden relative">
+                                                            <div className="absolute inset-0" style={{ backgroundColor: color.hex }} />
                                                         </div>
-                                                    )}
-                                                </button>
+                                                        <span className={`text-[10px] font-medium mt-1.5 z-10 relative transition-colors leading-tight ${isVisible ? "text-white" : isSelected ? "text-zinc-400" : "text-zinc-500"}`}>
+                                                            {color.name}
+                                                        </span>
+                                                        {isVisible && (
+                                                            <div className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center shadow-lg z-20">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3">
+                                                                    <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+                                                                </svg>
+                                                            </div>
+                                                        )}
+                                                    </button>
+                                                </div>
                                             );
                                         })}
                                     </div>
                                 </div>
-                            </div>
+                            </>
                         )}
                     </div>
                 </aside>
@@ -887,43 +896,37 @@ export default function EditorPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[300] bg-black flex items-center justify-center md:hidden"
-                        onClick={() => setShowImageZoom(false)}
+                        className="fixed inset-0 z-[300] bg-black flex flex-col md:hidden"
                     >
-                        {/* Close button */}
-                        <button
-                            onClick={() => setShowImageZoom(false)}
-                            className="absolute top-4 right-4 z-10 bg-zinc-800/80 backdrop-blur p-2 rounded-full"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-6 h-6">
-                                <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-                            </svg>
-                        </button>
-
-                        {/* Pinch-zoom container */}
+                        {/* Zoomable/pannable image container */}
                         <div
-                            className="w-full h-full overflow-auto touch-pinch-zoom"
-                            onClick={(e) => e.stopPropagation()}
+                            className="flex-1 overflow-auto overscroll-contain"
+                            style={{ touchAction: "pan-x pan-y pinch-zoom" }}
                         >
-                            <div className="min-w-full min-h-full flex items-center justify-center p-4">
-                                {/* Render canvas content as image for zooming */}
+                            <div className="min-w-[150%] min-h-[150%] flex items-center justify-center p-4">
                                 {canvasRef.current && (
                                     <img
                                         src={canvasRef.current.exportImage("png") || originalImage}
                                         alt="Zoomed car"
-                                        className="max-w-none w-auto h-auto"
-                                        style={{
-                                            maxWidth: "200%",
-                                            touchAction: "pinch-zoom"
-                                        }}
+                                        className="max-w-none w-auto h-auto pointer-events-none"
+                                        style={{ maxWidth: "250%" }}
                                     />
                                 )}
                             </div>
                         </div>
 
-                        {/* Hint text */}
-                        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-zinc-400 text-sm bg-zinc-900/80 backdrop-blur px-4 py-2 rounded-full">
-                            Pinch to zoom • Tap to close
+                        {/* Bottom controls - docked */}
+                        <div className="shrink-0 flex items-center justify-between px-4 py-3 bg-zinc-900/90 backdrop-blur">
+                            <span className="text-zinc-400 text-sm">Pinch to zoom</span>
+                            <button
+                                onClick={() => setShowImageZoom(false)}
+                                className="bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-full flex items-center gap-2 transition-colors"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                                    <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                                </svg>
+                                <span className="text-sm font-medium">Close</span>
+                            </button>
                         </div>
                     </motion.div>
                 )}

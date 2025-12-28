@@ -459,11 +459,11 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
             animate={{ opacity: 1 }}
             className="w-full h-full flex flex-col"
           >
-            {/* Mobile: Stacked vertical layout | Desktop: Overlay layout */}
-            <div className="flex-1 flex flex-col md:block relative w-full max-w-4xl mx-auto">
+            {/* Mobile: Fixed layout with docked CTAs | Desktop: Overlay layout */}
+            <div className="flex-1 flex flex-col md:block relative w-full max-w-4xl mx-auto overflow-hidden">
 
               {/* Car Image - Clean on mobile, overlay on desktop */}
-              <div className="relative rounded-xl md:rounded-2xl overflow-hidden bg-zinc-900 shadow-2xl">
+              <div className="relative rounded-xl md:rounded-2xl overflow-hidden bg-zinc-900 shadow-2xl shrink-0">
                 <Image
                   src={preview}
                   alt="Car preview"
@@ -609,13 +609,13 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
                 )}
               </div>
 
-              {/* Mobile only: Vertical analysis list below image */}
-              <div className="md:hidden flex-1 flex flex-col mt-3 space-y-2 px-1">
-                {/* Analysis header */}
+              {/* Mobile only: Scrollable analysis list - tight spacing */}
+              <div className="md:hidden flex-1 flex flex-col mt-2 space-y-1.5 px-1 overflow-y-auto min-h-0">
+                {/* Analysis header - compact */}
                 {isAnalyzing && (
-                  <div className="flex items-center gap-2 py-2">
-                    <div className="w-5 h-5 rounded-full border-2 border-blue-500 border-t-transparent animate-spin"></div>
-                    <span className="text-sm font-medium text-blue-400">Analyzing vehicle...</span>
+                  <div className="flex items-center gap-2 py-1">
+                    <div className="w-4 h-4 rounded-full border-2 border-blue-500 border-t-transparent animate-spin"></div>
+                    <span className="text-xs font-medium text-blue-400">Analyzing vehicle...</span>
                   </div>
                 )}
 
@@ -628,7 +628,7 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
                       key={step.key}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
+                      className={`flex items-center justify-between px-3 py-2 rounded-lg transition-all ${
                         status === "active" ? "bg-blue-500/15 border border-blue-500/40"
                           : status === "complete" ? "bg-zinc-800/60 border border-zinc-700/50"
                           : "bg-zinc-800/30 border border-zinc-700/30"
@@ -669,7 +669,7 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className={`flex items-center justify-between px-3 py-2.5 rounded-lg ${
+                  className={`flex items-center justify-between px-3 py-2 rounded-lg ${
                     masksReady ? "bg-zinc-800/60 border border-zinc-700/50" : "bg-zinc-800/30 border border-zinc-700/30"
                   }`}
                 >
@@ -690,23 +690,38 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
                   {masksReady && <span className="text-sm text-green-400">Ready</span>}
                 </motion.div>
 
-                {/* Ready to customize row - mobile */}
-                {!isAnalyzing && analysis && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center justify-center gap-2 bg-green-500/20 border border-green-500/30 px-4 py-3 rounded-lg mt-2"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-green-400">
-                      <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
-                    </svg>
-                    <span className="text-green-400 font-semibold">Ready to customize</span>
-                  </motion.div>
-                )}
               </div>
 
-              {/* Action buttons */}
-              <div className="flex gap-3 mt-4 px-1 md:px-0">
+              {/* Mobile: Docked CTA buttons at bottom - no redundant banner, tight spacing */}
+              <div className="md:hidden shrink-0 px-1 pt-2 pb-1">
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleClick}
+                    disabled={isAnalyzing}
+                    className={`flex-1 px-4 py-3 rounded-xl font-medium transition-all text-sm ${
+                      isAnalyzing
+                        ? "bg-zinc-800/50 text-zinc-500 cursor-not-allowed"
+                        : "bg-zinc-800 hover:bg-zinc-700 text-white hover:scale-[1.02]"
+                    }`}
+                  >
+                    Upload Different Photo
+                  </button>
+                  <button
+                    onClick={handleStartCustomizing}
+                    disabled={!canProceed}
+                    className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all text-sm ${
+                      canProceed
+                        ? "bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white shadow-lg shadow-red-500/25 hover:scale-[1.02]"
+                        : "bg-red-600/30 text-white/50 cursor-not-allowed"
+                    }`}
+                  >
+                    {isAnalyzing ? "Analyzing..." : "Start Customizing →"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Desktop: Action buttons */}
+              <div className="hidden md:flex gap-3 mt-4">
                 <button
                   onClick={handleClick}
                   disabled={isAnalyzing}
