@@ -18,6 +18,9 @@ interface VehicleAnalysis {
   colorHex: string;
   bodyType: string;
   angle: string;
+  cameraElevation: "eye-level" | "slightly-elevated" | "high-angle" | "aerial";
+  angleProblematic: boolean;
+  angleReason: string;
 }
 
 type AnalysisStep = "make" | "model" | "year" | "color" | "bodyType" | "angle" | "masks" | "complete";
@@ -95,6 +98,7 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
   const [masksReady, setMasksReady] = useState(false);
   // Track which attributes have been revealed (for staggered animation)
   const [revealedAttributes, setRevealedAttributes] = useState<Set<string>>(new Set());
+  const [angleError, setAngleError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -117,8 +121,9 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
     masksPromise: Promise<void>,
     setAnalysisState: (a: VehicleAnalysis | null) => void
   ) => {
-    // Reset revealed attributes
+    // Reset revealed attributes and error state
     setRevealedAttributes(new Set());
+    setAngleError(null);
 
     // Start the masks promise and update state when ready (runs in background)
     masksPromise.then(() => {
@@ -131,6 +136,15 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
     if (result) {
       console.log("[FileUpload] Analysis received, starting staggered reveal");
       setAnalysisState(result);
+
+      // Check for problematic angle BEFORE revealing attributes
+      if (result.angleProblematic) {
+        console.log("[FileUpload] Problematic angle detected:", result.angleReason);
+        setAngleError("This photo angle may not produce good results. Please upload a photo taken at eye-level.");
+        setCurrentStep("complete");
+        return; // Stop here - don't proceed
+      }
+
       // Reveal attributes one by one with random delays (takes ~1-2 seconds)
       await revealAttributesStaggered(result);
     }
@@ -240,6 +254,7 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
     setAnalysis(null);
     setCurrentStep("make");
     setRevealedAttributes(new Set());
+    setAngleError(null);
 
     // Create preview
     const reader = new FileReader();
@@ -255,7 +270,9 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
       await animateSteps(analysisPromise, masksPromise, setAnalysis);
 
       setIsAnalyzing(false);
-      setCanProceed(true);
+      // Only allow proceeding if there's no angle error
+      const result = await analysisPromise;
+      setCanProceed(!result?.angleProblematic);
     };
     reader.readAsDataURL(file);
 
@@ -317,6 +334,7 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
     setAnalysis(null);
     setCurrentStep("make");
     setRevealedAttributes(new Set());
+    setAngleError(null);
 
     // Fetch the sample image and convert to data URL
     const response = await fetch(samplePath);
@@ -336,7 +354,9 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
       await animateSteps(analysisPromise, masksPromise, setAnalysis);
 
       setIsAnalyzing(false);
-      setCanProceed(true);
+      // Only allow proceeding if there's no angle error
+      const result = await analysisPromise;
+      setCanProceed(!result?.angleProblematic);
     };
     reader.readAsDataURL(blob);
   };
@@ -584,8 +604,41 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
                   )}
                 </AnimatePresence>
 
+                {/* Desktop only: Angle Error overlay */}
+                {!isAnalyzing && angleError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="hidden md:block absolute inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-6"
+                  >
+                    <div className="bg-red-900/30 border-2 border-red-500 rounded-2xl p-8 max-w-lg text-center">
+                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-10 h-10 text-red-500">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <h3 className="text-2xl font-bold text-white mb-3">Incompatible Photo Angle</h3>
+                      <p className="text-lg text-zinc-200 mb-6">{angleError}</p>
+                      <div className="bg-zinc-900/50 rounded-lg p-4 mb-4">
+                        <p className="text-sm text-zinc-400 mb-2">For best results, upload photos taken:</p>
+                        <ul className="text-sm text-zinc-300 space-y-1">
+                          <li>✓ At eye-level (not from above)</li>
+                          <li>✓ From the side or 3/4 angle</li>
+                          <li>✓ With wheels clearly visible</li>
+                        </ul>
+                      </div>
+                      <button
+                        onClick={handleClick}
+                        className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-semibold transition-all"
+                      >
+                        Upload Different Photo
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+
                 {/* Desktop only: Analysis complete summary overlay */}
-                {!isAnalyzing && analysis && (
+                {!isAnalyzing && analysis && !angleError && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -620,8 +673,39 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
                   </div>
                 )}
 
+                {/* Mobile: Angle Error */}
+                {!isAnalyzing && angleError && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-red-900/30 border-2 border-red-500 rounded-xl p-4 text-center"
+                  >
+                    <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-red-500/20 flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-8 h-8 text-red-500">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-bold text-white mb-2">Incompatible Photo Angle</h3>
+                    <p className="text-sm text-zinc-200 mb-4">{angleError}</p>
+                    <div className="bg-zinc-900/50 rounded-lg p-3 mb-3">
+                      <p className="text-xs text-zinc-400 mb-1.5">For best results, upload photos taken:</p>
+                      <ul className="text-xs text-zinc-300 space-y-0.5">
+                        <li>✓ At eye-level (not from above)</li>
+                        <li>✓ From the side or 3/4 angle</li>
+                        <li>✓ With wheels clearly visible</li>
+                      </ul>
+                    </div>
+                    <button
+                      onClick={handleClick}
+                      className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all w-full"
+                    >
+                      Upload Different Photo
+                    </button>
+                  </motion.div>
+                )}
+
                 {/* Each attribute on its own row */}
-                {ANALYSIS_STEPS.filter(s => s.key !== "masks").map((step) => {
+                {!angleError && ANALYSIS_STEPS.filter(s => s.key !== "masks").map((step) => {
                   const status = getStepStatus(step.key);
                   const value = getStepValue(step.key);
                   return (
@@ -667,29 +751,31 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
                 })}
 
                 {/* AI Segmentation row */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className={`flex items-center justify-between px-3 py-2 rounded-lg ${
-                    masksReady ? "bg-zinc-800/60 border border-zinc-700/50" : "bg-zinc-800/30 border border-zinc-700/30"
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    {masksReady ? (
-                      <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3 text-green-400">
-                          <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    ) : (
-                      <div className="w-5 h-5 rounded-full border-2 border-zinc-600 border-t-blue-400 animate-spin"></div>
-                    )}
-                    <span className={`text-sm font-medium ${masksReady ? "text-zinc-300" : "text-zinc-500"}`}>
-                      AI Segmentation
-                    </span>
-                  </div>
-                  {masksReady && <span className="text-sm text-green-400">Ready</span>}
-                </motion.div>
+                {!angleError && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className={`flex items-center justify-between px-3 py-2 rounded-lg ${
+                      masksReady ? "bg-zinc-800/60 border border-zinc-700/50" : "bg-zinc-800/30 border border-zinc-700/30"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      {masksReady ? (
+                        <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3 text-green-400">
+                            <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      ) : (
+                        <div className="w-5 h-5 rounded-full border-2 border-zinc-600 border-t-blue-400 animate-spin"></div>
+                      )}
+                      <span className={`text-sm font-medium ${masksReady ? "text-zinc-300" : "text-zinc-500"}`}>
+                        AI Segmentation
+                      </span>
+                    </div>
+                    {masksReady && <span className="text-sm text-green-400">Ready</span>}
+                  </motion.div>
+                )}
 
               </div>
 
