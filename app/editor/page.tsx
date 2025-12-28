@@ -527,8 +527,8 @@ export default function EditorPage() {
 
             {/* Main Workspace - Column on mobile, row on desktop */}
             <main className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
-                {/* Canvas Section - Shows first on mobile, takes remaining space */}
-                <section className="flex-1 bg-zinc-950/50 flex flex-col relative z-0 order-1 md:order-2">
+                {/* Canvas Section - Scrollable middle area on mobile */}
+                <section className="flex-1 min-h-0 bg-zinc-950/50 flex flex-col relative z-0 order-1 md:order-2 overflow-y-auto md:overflow-visible">
                     {/* Original/Tuned toggle - only show when image is loaded AND has modifications */}
                     {originalImage && (selectedWheel || selectedPaint) && (
                         <div className="absolute top-1 left-1 z-10 md:relative md:top-0 md:left-0 md:p-4">
@@ -634,8 +634,8 @@ export default function EditorPage() {
                     )}
                 </section>
 
-                {/* Options Panel - Docked bottom sheet on mobile, sidebar on desktop */}
-                <aside className={`w-full md:w-80 border-t md:border-t-0 md:border-r border-zinc-800 bg-zinc-950 flex flex-col z-10 relative order-2 md:order-1 md:max-h-none ${!originalImage ? "hidden md:flex" : "flex"}`}>
+                {/* Options Panel - Fixed at bottom on mobile, sidebar on desktop */}
+                <aside className={`w-full md:w-80 border-t md:border-t-0 md:border-r border-zinc-800 bg-zinc-950 flex flex-col z-20 order-2 md:order-1 shrink-0 md:relative md:max-h-none ${!originalImage ? "hidden md:flex" : "flex"}`}>
                     {/* Tab switcher */}
                     <div className="p-2 md:p-4 border-b border-zinc-800 shrink-0">
                         <div className="flex bg-zinc-900 rounded-lg p-1">
@@ -658,8 +658,8 @@ export default function EditorPage() {
                         </div>
                     </div>
 
-                    {/* Content area - fixed height on mobile matching wheel card size */}
-                    <div className={`p-2 md:p-4 md:space-y-4 md:overflow-y-auto md:flex-1 ${!originalImage ? "opacity-20 pointer-events-none blur-sm" : "opacity-100"}`}>
+                    {/* Content area - shows wheel/color options, min height ensures visibility on mobile */}
+                    <div className={`p-2 pb-6 md:p-4 md:pb-4 md:space-y-4 md:overflow-y-auto md:flex-1 min-h-[120px] md:min-h-0 ${!originalImage ? "opacity-20 pointer-events-none blur-sm" : "opacity-100"}`}>
                         {!originalImage && (
                             <div className="absolute inset-0 z-20 flex items-center justify-center p-6 text-center">
                                 <p className="text-zinc-500 text-sm font-medium">Upload a car photo to unlock tuning tools</p>

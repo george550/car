@@ -406,7 +406,7 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
             onDragLeave={handleDragLeave}
             onClick={handleClick}
             className={`
-              flex-1 border-2 border-dashed rounded-2xl p-6 md:p-12 cursor-pointer flex flex-col justify-center
+              flex-1 border-2 border-dashed rounded-2xl p-4 md:p-12 cursor-pointer flex flex-col justify-between
               transition-all duration-300
               ${isDragging
                 ? "border-red-500 bg-red-500/10"
@@ -414,24 +414,25 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
               }
             `}
           >
-            <div className="text-center space-y-3 md:space-y-4">
-              <div className="text-5xl md:text-6xl">📸</div>
-              <h3 className="text-xl md:text-2xl font-semibold">Upload Your Car</h3>
-              <p className="text-zinc-400 max-w-md mx-auto text-sm md:text-base">
-                Drop your car photo(s) here, or click browse to select photos
+            {/* Upload prompt section */}
+            <div className="text-center space-y-2 md:space-y-4 pt-4 md:pt-0">
+              <div className="text-4xl md:text-6xl">📸</div>
+              <h3 className="text-lg md:text-2xl font-semibold">Upload Your Car</h3>
+              <p className="text-zinc-400 max-w-md mx-auto text-xs md:text-base">
+                Drop your car photo here, or tap to browse
               </p>
-              <div className="flex flex-wrap justify-center gap-2 text-xs text-zinc-500 pt-2 md:pt-4">
-                <span className="bg-zinc-800 px-3 py-1 rounded-full">JPG</span>
-                <span className="bg-zinc-800 px-3 py-1 rounded-full">PNG</span>
-                <span className="bg-zinc-800 px-3 py-1 rounded-full">WEBP</span>
+              <div className="flex flex-wrap justify-center gap-2 text-xs text-zinc-500">
+                <span className="bg-zinc-800 px-2.5 py-1 rounded-full">JPG</span>
+                <span className="bg-zinc-800 px-2.5 py-1 rounded-full">PNG</span>
+                <span className="bg-zinc-800 px-2.5 py-1 rounded-full">WEBP</span>
               </div>
             </div>
 
-            {/* Sample images section */}
-            <div className="mt-4 md:mt-8 pt-4 md:pt-6 border-t border-zinc-800">
-              <p className="text-xs md:text-sm text-zinc-400 mb-3 md:mb-4 text-center">Or select a sample image</p>
+            {/* Sample images section - takes remaining space */}
+            <div className="pt-4 md:pt-6 border-t border-zinc-800 mt-4">
+              <p className="text-xs text-zinc-500 mb-2 md:mb-4 text-center">Or select a sample image</p>
               {/* 2 per row on mobile, 4 on desktop */}
-              <div className="grid grid-cols-2 md:flex md:justify-center gap-3 md:gap-4">
+              <div className="grid grid-cols-2 md:flex md:justify-center gap-2 md:gap-4">
                 {sampleImages.map((src, index) => (
                   <button
                     key={src}
@@ -439,7 +440,7 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
                       e.stopPropagation();
                       handleSampleClick(src);
                     }}
-                    className="relative aspect-video md:w-44 md:h-28 rounded-lg overflow-hidden border-2 border-zinc-700 hover:border-red-500 active:border-red-500 transition-colors group"
+                    className="relative aspect-[16/10] md:w-44 md:h-28 rounded-lg overflow-hidden border-2 border-zinc-700 hover:border-red-500 active:border-red-500 transition-colors group"
                   >
                     <Image
                       src={src}
@@ -459,8 +460,8 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
             animate={{ opacity: 1 }}
             className="w-full h-full flex flex-col"
           >
-            {/* Mobile: Fixed layout with docked CTAs | Desktop: Overlay layout */}
-            <div className="flex-1 flex flex-col md:block relative w-full max-w-4xl mx-auto overflow-hidden">
+            {/* Main content area - scrollable on mobile */}
+            <div className="flex-1 flex flex-col md:block relative w-full max-w-4xl mx-auto overflow-y-auto md:overflow-visible">
 
               {/* Car Image - Clean on mobile, overlay on desktop */}
               <div className="relative rounded-xl md:rounded-2xl overflow-hidden bg-zinc-900 shadow-2xl shrink-0">
@@ -692,35 +693,7 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
 
               </div>
 
-              {/* Mobile: Docked CTA buttons at bottom - no redundant banner, tight spacing */}
-              <div className="md:hidden shrink-0 px-1 pt-2 pb-1">
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleClick}
-                    disabled={isAnalyzing}
-                    className={`flex-1 px-4 py-3 rounded-xl font-medium transition-all text-sm ${
-                      isAnalyzing
-                        ? "bg-zinc-800/50 text-zinc-500 cursor-not-allowed"
-                        : "bg-zinc-800 hover:bg-zinc-700 text-white hover:scale-[1.02]"
-                    }`}
-                  >
-                    Upload Different Photo
-                  </button>
-                  <button
-                    onClick={handleStartCustomizing}
-                    disabled={!canProceed}
-                    className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all text-sm ${
-                      canProceed
-                        ? "bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white shadow-lg shadow-red-500/25 hover:scale-[1.02]"
-                        : "bg-red-600/30 text-white/50 cursor-not-allowed"
-                    }`}
-                  >
-                    {isAnalyzing ? "Analyzing..." : "Start Customizing →"}
-                  </button>
-                </div>
-              </div>
-
-              {/* Desktop: Action buttons */}
+              {/* Desktop: Action buttons (inside scrollable area) */}
               <div className="hidden md:flex gap-3 mt-4">
                 <button
                   onClick={handleClick}
@@ -737,6 +710,34 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
                   onClick={handleStartCustomizing}
                   disabled={!canProceed}
                   className={`flex-1 px-4 md:px-6 py-3 rounded-xl font-semibold transition-all text-sm md:text-base ${
+                    canProceed
+                      ? "bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white shadow-lg shadow-red-500/25 hover:scale-[1.02]"
+                      : "bg-red-600/30 text-white/50 cursor-not-allowed"
+                  }`}
+                >
+                  {isAnalyzing ? "Analyzing..." : "Start Customizing →"}
+                </button>
+              </div>
+            </div>
+
+            {/* Mobile: Docked CTA buttons at bottom - OUTSIDE scrollable area */}
+            <div className="md:hidden shrink-0 px-2 pt-3 pb-2 border-t border-zinc-800 bg-zinc-950">
+              <div className="flex gap-2 max-w-4xl mx-auto">
+                <button
+                  onClick={handleClick}
+                  disabled={isAnalyzing}
+                  className={`flex-1 px-4 py-3 rounded-xl font-medium transition-all text-sm ${
+                    isAnalyzing
+                      ? "bg-zinc-800/50 text-zinc-500 cursor-not-allowed"
+                      : "bg-zinc-800 hover:bg-zinc-700 text-white hover:scale-[1.02]"
+                  }`}
+                >
+                  Upload Different
+                </button>
+                <button
+                  onClick={handleStartCustomizing}
+                  disabled={!canProceed}
+                  className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all text-sm ${
                     canProceed
                       ? "bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white shadow-lg shadow-red-500/25 hover:scale-[1.02]"
                       : "bg-red-600/30 text-white/50 cursor-not-allowed"
