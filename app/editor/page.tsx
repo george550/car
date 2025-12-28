@@ -557,8 +557,8 @@ export default function EditorPage() {
                         </div>
                     )}
 
-                    {/* Image container - fills available space, pinch-zoomable on mobile */}
-                    <div className={`flex-1 flex items-center justify-center overflow-hidden ${originalImage ? "p-0 md:px-6 md:pb-6" : "p-2 md:p-6"}`}>
+                    {/* Image container - fills available space */}
+                    <div className={`flex-1 min-h-0 flex ${originalImage ? "items-center justify-center overflow-hidden p-0 md:px-6 md:pb-6" : "p-1 md:p-6"}`}>
                         {!originalImage ? (
                             <FileUpload
                                 onSuccess={(url) => {
@@ -608,17 +608,17 @@ export default function EditorPage() {
                         )}
                     </div>
 
-                    {/* Processing Overlay */}
+                    {/* Processing Overlay - centered on photo area (accounting for fixed bottom panel) */}
                     {isProcessing && (
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center"
+                            className="absolute inset-0 bottom-[180px] md:bottom-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center"
                         >
                             <motion.div
                                 initial={{ scale: 0.9, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
-                                className="bg-zinc-900/95 backdrop-blur-xl border border-red-500/30 p-6 md:p-8 rounded-2xl flex flex-col items-center gap-4 shadow-2xl max-w-sm w-full mx-4"
+                                className="bg-zinc-900/95 backdrop-blur-xl border border-red-500/30 p-5 md:p-8 rounded-2xl flex flex-col items-center gap-3 md:gap-4 shadow-2xl max-w-xs md:max-w-sm w-full mx-4"
                             >
                                 <div className="relative w-12 h-12 md:w-16 md:h-16">
                                     <div className="absolute inset-0 border-4 border-red-500/20 rounded-full"></div>

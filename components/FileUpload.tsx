@@ -461,7 +461,7 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
             className="w-full h-full flex flex-col"
           >
             {/* Main content area - scrollable on mobile, with bottom padding for fixed CTAs */}
-            <div className="flex-1 flex flex-col md:block relative w-full max-w-4xl mx-auto overflow-y-auto md:overflow-visible pb-24 md:pb-0">
+            <div className="flex-1 flex flex-col md:block relative w-full max-w-4xl mx-auto overflow-y-auto md:overflow-visible pb-28 md:pb-0">
 
               {/* Car Image - Clean on mobile, overlay on desktop */}
               <div className="relative rounded-xl md:rounded-2xl overflow-hidden bg-zinc-900 shadow-2xl shrink-0">
@@ -610,8 +610,8 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
                 )}
               </div>
 
-              {/* Mobile only: Scrollable analysis list - tight spacing */}
-              <div className="md:hidden flex-1 flex flex-col mt-2 space-y-1.5 px-1 overflow-y-auto min-h-0">
+              {/* Mobile only: Analysis list - parent handles scrolling */}
+              <div className="md:hidden flex flex-col mt-2 space-y-1.5 px-1">
                 {/* Analysis header - compact */}
                 {isAnalyzing && (
                   <div className="flex items-center gap-2 py-1">
