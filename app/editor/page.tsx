@@ -452,42 +452,46 @@ export default function EditorPage() {
 
     return (
         <div className="min-h-screen bg-black text-white flex flex-col h-screen overflow-hidden relative">
-            {/* Header */}
+            {/* Header - Compact on mobile */}
             <header className="border-b border-zinc-800 bg-zinc-950 z-10">
-                <div className="max-w-screen-2xl mx-auto px-6 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-6">
+                <div className="max-w-screen-2xl mx-auto px-3 md:px-6 h-14 md:h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-2 md:gap-6">
                         <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                            <span className="text-xl">🏎</span>
-                            <span className="font-bold">Tuner<span className="text-red-500">AI</span></span>
+                            <span className="text-lg md:text-xl">🏎</span>
+                            <span className="font-bold text-sm md:text-base">Tuner<span className="text-red-500">AI</span></span>
                         </Link>
-                        <div className="h-6 w-px bg-zinc-800" />
-                        <h1 className="text-sm font-medium text-zinc-400">Editor</h1>
+                        <div className="hidden md:block h-6 w-px bg-zinc-800" />
+                        <h1 className="hidden md:block text-sm font-medium text-zinc-400">Editor</h1>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        {isProcessing && <span className="text-xs text-red-500 animate-pulse">Generating...</span>}
+                    <div className="flex items-center gap-2 md:gap-4">
+                        {/* Status indicators */}
+                        {isProcessing && <span className="text-xs text-red-500 animate-pulse hidden sm:inline">Generating...</span>}
                         {(isLoadingWheelMask || isLoadingBodyMask) && !isProcessing && (
-                            <span className="text-xs text-blue-400 animate-pulse">Detecting regions...</span>
+                            <span className="text-xs text-blue-400 animate-pulse">
+                                <span className="hidden sm:inline">Detecting regions...</span>
+                                <span className="sm:hidden">Detecting...</span>
+                            </span>
                         )}
                         {wheelMask && bodyMask && !isProcessing && !isLoadingWheelMask && !isLoadingBodyMask && (
                             <span className="text-xs text-green-500">Ready</span>
                         )}
                         <button
                             onClick={() => router.push("/studio")}
-                            className="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-lg text-sm font-medium hover:bg-zinc-700 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            className="bg-zinc-800 text-zinc-300 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium hover:bg-zinc-700 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 md:gap-2"
                             disabled={isProcessing}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                                 <path d="M9.25 13.25a.75.75 0 0 0 1.5 0V4.636l2.955 3.129a.75.75 0 0 0 1.09-1.03l-4.25-4.5a.75.75 0 0 0-1.09 0l-4.25 4.5a.75.75 0 1 0 1.09 1.03L9.25 4.636v8.614Z" />
                                 <path d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z" />
                             </svg>
-                            Upload New
+                            <span className="hidden sm:inline">Upload New</span>
                         </button>
                         <div className="relative">
                             <button
                                 onClick={() => setShowExportMenu(!showExportMenu)}
                                 disabled={!originalImage}
-                                className="bg-white text-black px-4 py-2 rounded-lg text-sm font-semibold hover:bg-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                className="bg-white text-black px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-semibold hover:bg-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 md:gap-2"
                             >
                                 Export
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
@@ -520,11 +524,115 @@ export default function EditorPage() {
                 </div>
             </header>
 
-            {/* Main Workspace */}
-            <main className="flex-1 flex overflow-hidden relative">
-                {/* Left Sidebar - Tools */}
-                <aside className="w-80 border-r border-zinc-800 bg-zinc-950 flex flex-col z-10 relative">
-                    <div className="p-4 border-b border-zinc-800">
+            {/* Main Workspace - Column on mobile, row on desktop */}
+            <main className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+                {/* Canvas Section - Shows first on mobile */}
+                <section className="flex-1 bg-zinc-950/50 flex flex-col relative z-0 order-1 md:order-2 min-h-[40vh] md:min-h-0">
+                    {/* Original/Tuned toggle - only show when image is loaded */}
+                    {originalImage && (
+                        <div className="p-2 md:p-4">
+                            {(selectedWheel || selectedPaint) ? (
+                                <div className={`inline-flex bg-zinc-900 rounded-lg p-1 ${isProcessing ? "opacity-50 pointer-events-none" : ""}`}>
+                                    <button
+                                        onClick={() => setViewingOriginal(true)}
+                                        className={`px-3 md:px-4 py-1.5 md:py-2 rounded-md text-xs md:text-sm font-medium transition-all ${
+                                            viewingOriginal
+                                                ? "bg-zinc-800 text-white shadow-sm"
+                                                : "text-zinc-500 hover:text-zinc-300"
+                                        }`}
+                                    >
+                                        Original
+                                    </button>
+                                    <button
+                                        onClick={() => setViewingOriginal(false)}
+                                        className={`px-3 md:px-4 py-1.5 md:py-2 rounded-md text-xs md:text-sm font-medium transition-all ${
+                                            !viewingOriginal
+                                                ? "bg-zinc-800 text-white shadow-sm"
+                                                : "text-zinc-500 hover:text-zinc-300"
+                                        }`}
+                                    >
+                                        Tuned
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="h-[36px] md:h-[44px]" />
+                            )}
+                        </div>
+                    )}
+
+                    {/* Image container */}
+                    <div className={`flex-1 flex items-center justify-center ${originalImage ? "px-2 pb-2 md:px-6 md:pb-6" : "p-4 md:p-6"}`}>
+                        {!originalImage ? (
+                            <FileUpload
+                                onSuccess={(url) => {
+                                    setOriginalImage(url);
+                                    setWheelLayers({});
+                                    setPaintLayers({});
+                                    setViewingOriginal(false);
+                                    setSelectedWheel(null);
+                                    setSelectedPaint(null);
+                                    const storedWheelMask = sessionStorage.getItem("tuner-ai-wheel-mask");
+                                    const storedBodyMask = sessionStorage.getItem("tuner-ai-body-mask");
+                                    if (storedWheelMask) {
+                                        setWheelMask(storedWheelMask);
+                                        setIsLoadingWheelMask(false);
+                                        sessionStorage.removeItem("tuner-ai-wheel-mask");
+                                    } else {
+                                        setIsLoadingWheelMask(false);
+                                    }
+                                    if (storedBodyMask) {
+                                        setBodyMask(storedBodyMask);
+                                        setIsLoadingBodyMask(false);
+                                        sessionStorage.removeItem("tuner-ai-body-mask");
+                                    } else {
+                                        setIsLoadingBodyMask(false);
+                                    }
+                                }}
+                            />
+                        ) : (
+                            <EditorCanvas
+                                ref={canvasRef}
+                                originalImage={originalImage}
+                                wheelLayer={currentWheelLayer}
+                                paintLayer={currentPaintLayer}
+                                wheelVisible={wheelVisible && !viewingOriginal}
+                                paintVisible={paintVisible && !viewingOriginal}
+                                wheelMask={wheelMask}
+                                bodyMask={bodyMask}
+                                highlightType={highlightType}
+                            />
+                        )}
+                    </div>
+
+                    {/* Processing Overlay */}
+                    {isProcessing && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center"
+                        >
+                            <motion.div
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                className="bg-zinc-900/95 backdrop-blur-xl border border-red-500/30 p-6 md:p-8 rounded-2xl flex flex-col items-center gap-4 shadow-2xl max-w-sm w-full mx-4"
+                            >
+                                <div className="relative w-12 h-12 md:w-16 md:h-16">
+                                    <div className="absolute inset-0 border-4 border-red-500/20 rounded-full"></div>
+                                    <div className="absolute inset-0 border-4 border-transparent border-t-red-500 rounded-full animate-spin"></div>
+                                    <div className="absolute inset-2 border-4 border-transparent border-t-red-400 rounded-full animate-spin" style={{ animationDuration: '0.8s' }}></div>
+                                </div>
+                                <div className="text-center">
+                                    <h3 className="text-lg md:text-xl font-bold mb-3 text-white">TUNING IN PROGRESS</h3>
+                                    <LoadingMessages selectionId={processingItem} />
+                                </div>
+                            </motion.div>
+                        </motion.div>
+                    )}
+                </section>
+
+                {/* Options Panel - Bottom sheet on mobile, sidebar on desktop */}
+                <aside className="w-full md:w-80 border-t md:border-t-0 md:border-r border-zinc-800 bg-zinc-950 flex flex-col z-10 relative order-2 md:order-1 max-h-[50vh] md:max-h-none">
+                    <div className="p-3 md:p-4 border-b border-zinc-800">
                         <div className="flex bg-zinc-900 rounded-lg p-1">
                             {[
                                 { id: "wheels", label: "Wheels" },
@@ -534,7 +642,7 @@ export default function EditorPage() {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     disabled={isProcessing}
-                                    className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${activeTab === tab.id
+                                    className={`flex-1 py-2 text-xs md:text-sm font-medium rounded-md transition-all ${activeTab === tab.id
                                         ? "bg-zinc-800 text-white shadow-sm"
                                         : "text-zinc-500 hover:text-zinc-300"
                                         } ${isProcessing ? "opacity-50 cursor-not-allowed" : ""}`}
@@ -545,16 +653,17 @@ export default function EditorPage() {
                         </div>
                     </div>
 
-                    <div className={`flex-1 overflow-y-auto p-4 space-y-4 transition-all duration-500 ${!originalImage ? "opacity-20 pointer-events-none blur-sm" : "opacity-100"}`}>
+                    <div className={`flex-1 overflow-y-auto p-3 md:p-4 space-y-4 transition-all duration-500 ${!originalImage ? "opacity-20 pointer-events-none blur-sm" : "opacity-100"}`}>
                         {!originalImage && (
                             <div className="absolute inset-0 z-20 flex items-center justify-center p-6 text-center">
                                 <p className="text-zinc-500 text-sm font-medium">Upload a car photo to unlock tuning tools</p>
                             </div>
                         )}
                         {activeTab === "wheels" && (
-                            <div className="space-y-4">
+                            <div className="space-y-3 md:space-y-4">
                                 <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Select Genesis Wheels</h3>
-                                <div className="grid grid-cols-2 gap-3">
+                                {/* Horizontal scroll on mobile, grid on desktop */}
+                                <div className="flex md:grid md:grid-cols-2 gap-3 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 -mx-3 px-3 md:mx-0 md:px-0 snap-x snap-mandatory md:snap-none">
                                     {[
                                         {
                                             id: "20-sputtering",
@@ -588,7 +697,7 @@ export default function EditorPage() {
                                         const isSelected = selectedWheel === wheel.id;
                                         const isVisible = isSelected && wheelVisible && !viewingOriginal;
                                         return (
-                                            <div key={i} className="group relative">
+                                            <div key={i} className="group relative flex-shrink-0 w-32 md:w-auto snap-start">
                                                 <button
                                                     onClick={() => handleWheelClick(wheel)}
                                                     disabled={isProcessing || isLoadingWheelMask}
@@ -638,13 +747,14 @@ export default function EditorPage() {
                             </div>
                         )}
                         {activeTab === "paint" && (
-                            <div className="space-y-6">
+                            <div className="space-y-4 md:space-y-6">
                                 <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Exterior Color</h3>
 
                                 {/* Glossy Colors */}
-                                <div className="space-y-3">
+                                <div className="space-y-2 md:space-y-3">
                                     <h4 className="text-xs font-medium text-zinc-400">Glossy</h4>
-                                    <div className="grid grid-cols-4 gap-2">
+                                    {/* More columns on mobile for compact view */}
+                                    <div className="grid grid-cols-5 md:grid-cols-4 gap-2">
                                         {[
                                             { id: "vik-black", name: "Vik Black", hex: "#1a1a1a", prompt: "glossy Vik Black paint, deep black metallic finish" },
                                             { id: "himalayan-gray", name: "Himalayan Gray", hex: "#4a5568", prompt: "glossy Himalayan Gray paint, dark gray metallic finish" },
@@ -691,9 +801,9 @@ export default function EditorPage() {
                                 </div>
 
                                 {/* Matte Colors */}
-                                <div className="space-y-3">
+                                <div className="space-y-2 md:space-y-3">
                                     <h4 className="text-xs font-medium text-zinc-400">Matte</h4>
-                                    <div className="grid grid-cols-4 gap-2">
+                                    <div className="grid grid-cols-5 md:grid-cols-4 gap-2">
                                         {[
                                             { id: "makalu-gray", name: "Makalu Gray", hex: "#5a6a7a", prompt: "matte Makalu Gray paint, flat gray-blue matte finish, no gloss" },
                                         ].map((color) => {
@@ -735,134 +845,26 @@ export default function EditorPage() {
                         )}
                     </div>
                 </aside>
-
-                {/* Center - Canvas */}
-                <section className="flex-1 bg-zinc-950/50 flex flex-col relative z-0">
-                    {/* Original/Tuned toggle - only show when image is loaded */}
-                    {originalImage && (
-                        <div className="p-4">
-                            {(selectedWheel || selectedPaint) ? (
-                                <div className={`inline-flex bg-zinc-900 rounded-lg p-1 ${isProcessing ? "opacity-50 pointer-events-none" : ""}`}>
-                                    <button
-                                        onClick={() => setViewingOriginal(true)}
-                                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                                            viewingOriginal
-                                                ? "bg-zinc-800 text-white shadow-sm"
-                                                : "text-zinc-500 hover:text-zinc-300"
-                                        }`}
-                                    >
-                                        Original
-                                    </button>
-                                    <button
-                                        onClick={() => setViewingOriginal(false)}
-                                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                                            !viewingOriginal
-                                                ? "bg-zinc-800 text-white shadow-sm"
-                                                : "text-zinc-500 hover:text-zinc-300"
-                                        }`}
-                                    >
-                                        Tuned
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="h-[44px]" />
-                            )}
-                        </div>
-                    )}
-
-                    {/* Image container - full center when no image */}
-                    <div className={`flex-1 flex items-center justify-center ${originalImage ? "px-6 pb-6" : "p-6"}`}>
-                        {!originalImage ? (
-                            <FileUpload
-                                onSuccess={(url) => {
-                                    setOriginalImage(url);
-                                    // Clear all layers when new image is uploaded - masks come from FileUpload
-                                    setWheelLayers({});
-                                    setPaintLayers({});
-                                    setViewingOriginal(false);
-                                    setSelectedWheel(null);
-                                    setSelectedPaint(null);
-                                    // Load masks from sessionStorage (FileUpload sets them)
-                                    const storedWheelMask = sessionStorage.getItem("tuner-ai-wheel-mask");
-                                    const storedBodyMask = sessionStorage.getItem("tuner-ai-body-mask");
-                                    if (storedWheelMask) {
-                                        setWheelMask(storedWheelMask);
-                                        setIsLoadingWheelMask(false);
-                                        sessionStorage.removeItem("tuner-ai-wheel-mask");
-                                    } else {
-                                        // No mask - detection either failed or still in progress
-                                        setIsLoadingWheelMask(false);
-                                    }
-                                    if (storedBodyMask) {
-                                        setBodyMask(storedBodyMask);
-                                        setIsLoadingBodyMask(false);
-                                        sessionStorage.removeItem("tuner-ai-body-mask");
-                                    } else {
-                                        // No mask - detection either failed or still in progress
-                                        setIsLoadingBodyMask(false);
-                                    }
-                                }}
-                            />
-                        ) : (
-                            <EditorCanvas
-                                ref={canvasRef}
-                                originalImage={originalImage}
-                                wheelLayer={currentWheelLayer}
-                                paintLayer={currentPaintLayer}
-                                wheelVisible={wheelVisible && !viewingOriginal}
-                                paintVisible={paintVisible && !viewingOriginal}
-                                wheelMask={wheelMask}
-                                bodyMask={bodyMask}
-                                highlightType={highlightType}
-                            />
-                        )}
-                    </div>
-                    {/* Tuning/Processing Overlay */}
-                    {isProcessing && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center"
-                        >
-                            <motion.div
-                                initial={{ scale: 0.9, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                className="bg-zinc-900/95 backdrop-blur-xl border border-red-500/30 p-8 rounded-2xl flex flex-col items-center gap-4 shadow-2xl max-w-sm w-full mx-4"
-                            >
-                                {/* Spinning wheel icon */}
-                                <div className="relative w-16 h-16">
-                                    <div className="absolute inset-0 border-4 border-red-500/20 rounded-full"></div>
-                                    <div className="absolute inset-0 border-4 border-transparent border-t-red-500 rounded-full animate-spin"></div>
-                                    <div className="absolute inset-2 border-4 border-transparent border-t-red-400 rounded-full animate-spin" style={{ animationDuration: '0.8s' }}></div>
-                                </div>
-                                <div className="text-center">
-                                    <h3 className="text-xl font-bold mb-3 text-white">TUNING IN PROGRESS</h3>
-                                    <LoadingMessages selectionId={processingItem} />
-                                </div>
-                            </motion.div>
-                        </motion.div>
-                    )}
-                </section>
             </main>
 
-            {/* Error Toast */}
+            {/* Error Toast - Positioned above bottom sheet on mobile */}
             {error && (
-                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-red-500/90 text-white px-6 py-3 rounded-full shadow-xl backdrop-blur-md z-[200] flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4">
-                    <span className="text-xl">⚠️</span>
-                    <span className="font-medium">{error}</span>
+                <div className="fixed bottom-[55vh] md:bottom-8 left-1/2 -translate-x-1/2 bg-red-500/90 text-white px-4 md:px-6 py-2 md:py-3 rounded-full shadow-xl backdrop-blur-md z-[200] flex items-center gap-2 md:gap-3 animate-in fade-in slide-in-from-bottom-4 max-w-[90vw]">
+                    <span className="text-base md:text-xl">⚠️</span>
+                    <span className="font-medium text-sm md:text-base truncate">{error}</span>
                     <button
                         onClick={() => setError(null)}
-                        className="ml-2 hover:bg-white/20 rounded-full p-1 transition-colors"
+                        className="ml-1 md:ml-2 hover:bg-white/20 rounded-full p-1 transition-colors flex-shrink-0"
                     >
                         ✕
                     </button>
                 </div>
             )}
 
-            {/* Global Tooltip */}
+            {/* Global Tooltip - Desktop only (hidden on mobile/touch devices) */}
             {tooltip.text && (
                 <div
-                    className="fixed left-80 ml-6 p-6 bg-zinc-900/95 backdrop-blur-xl border border-zinc-700 rounded-xl shadow-2xl w-96 z-[100] pointer-events-none transition-all duration-200"
+                    className="hidden md:block fixed left-80 ml-6 p-6 bg-zinc-900/95 backdrop-blur-xl border border-zinc-700 rounded-xl shadow-2xl w-96 z-[100] pointer-events-none transition-all duration-200"
                     style={{ top: Math.max(16, tooltip.top - 20) }}
                 >
                     <h4 className="text-white font-bold mb-3 text-lg">{tooltip.title}</h4>
