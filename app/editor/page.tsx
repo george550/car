@@ -557,8 +557,8 @@ export default function EditorPage() {
                         </div>
                     )}
 
-                    {/* Image container - fills available space, no padding on mobile */}
-                    <div className={`flex-1 flex items-center justify-center ${originalImage ? "p-0 md:px-6 md:pb-6" : "p-4 md:p-6"}`}>
+                    {/* Image container - fills available space */}
+                    <div className={`flex-1 flex items-center justify-center ${originalImage ? "p-0 md:px-6 md:pb-6" : "p-2 md:p-6"}`}>
                         {!originalImage ? (
                             <FileUpload
                                 onSuccess={(url) => {

@@ -385,7 +385,7 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
   };
 
   return (
-    <div className={`w-full mx-auto ${preview ? "max-w-4xl" : "max-w-2xl"}`}>
+    <div className={`w-full h-full mx-auto flex flex-col ${preview ? "max-w-4xl" : "max-w-2xl"}`}>
       <input
         ref={fileInputRef}
         type="file"
@@ -406,7 +406,7 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
             onDragLeave={handleDragLeave}
             onClick={handleClick}
             className={`
-              border-2 border-dashed rounded-2xl p-12 cursor-pointer
+              flex-1 border-2 border-dashed rounded-2xl p-6 md:p-12 cursor-pointer flex flex-col justify-center
               transition-all duration-300
               ${isDragging
                 ? "border-red-500 bg-red-500/10"
@@ -414,13 +414,13 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
               }
             `}
           >
-            <div className="text-center space-y-4">
-              <div className="text-6xl">📸</div>
-              <h3 className="text-2xl font-semibold">Upload Your Car</h3>
-              <p className="text-zinc-400 max-w-md mx-auto">
+            <div className="text-center space-y-3 md:space-y-4">
+              <div className="text-5xl md:text-6xl">📸</div>
+              <h3 className="text-xl md:text-2xl font-semibold">Upload Your Car</h3>
+              <p className="text-zinc-400 max-w-md mx-auto text-sm md:text-base">
                 Drop your car photo(s) here, or click browse to select photos
               </p>
-              <div className="flex flex-wrap justify-center gap-2 text-xs text-zinc-500 pt-4">
+              <div className="flex flex-wrap justify-center gap-2 text-xs text-zinc-500 pt-2 md:pt-4">
                 <span className="bg-zinc-800 px-3 py-1 rounded-full">JPG</span>
                 <span className="bg-zinc-800 px-3 py-1 rounded-full">PNG</span>
                 <span className="bg-zinc-800 px-3 py-1 rounded-full">WEBP</span>
@@ -428,8 +428,8 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
             </div>
 
             {/* Sample images section */}
-            <div className="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-zinc-800">
-              <p className="text-sm text-zinc-400 mb-3 md:mb-4 text-center">Or select one of the following images to start</p>
+            <div className="mt-4 md:mt-8 pt-4 md:pt-6 border-t border-zinc-800">
+              <p className="text-xs md:text-sm text-zinc-400 mb-3 md:mb-4 text-center">Or select a sample image</p>
               {/* 2 per row on mobile, 4 on desktop */}
               <div className="grid grid-cols-2 md:flex md:justify-center gap-3 md:gap-4">
                 {sampleImages.map((src, index) => (
