@@ -457,30 +457,31 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
             key="preview"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="w-full"
+            className="w-full h-full flex flex-col"
           >
-            {/* Full-size image container like editor mode */}
-            <div className="relative w-full max-w-4xl mx-auto">
-              <div className="relative rounded-2xl overflow-hidden bg-zinc-900 shadow-2xl">
+            {/* Mobile: Stacked vertical layout | Desktop: Overlay layout */}
+            <div className="flex-1 flex flex-col md:block relative w-full max-w-4xl mx-auto">
+
+              {/* Car Image - Clean on mobile, overlay on desktop */}
+              <div className="relative rounded-xl md:rounded-2xl overflow-hidden bg-zinc-900 shadow-2xl">
                 <Image
                   src={preview}
                   alt="Car preview"
                   width={1200}
                   height={800}
-                  className={`w-full h-auto transition-all duration-700 ${isAnalyzing ? "scale-[1.02]" : ""}`}
+                  className={`w-full h-auto transition-all duration-700 ${isAnalyzing ? "md:scale-[1.02]" : ""}`}
                   unoptimized
                 />
 
-                {/* Analysis overlay - sleek bottom panel design */}
+                {/* Desktop only: Analysis overlay */}
                 <AnimatePresence>
                   {isAnalyzing && (
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20"
+                      className="hidden md:block absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20"
                     >
-                      {/* Analysis panel at bottom */}
                       <motion.div
                         initial={{ y: 50, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
@@ -488,7 +489,6 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
                         className="absolute bottom-0 left-0 right-0 p-6"
                       >
                         <div className="bg-zinc-900/80 backdrop-blur-xl border border-zinc-700/50 rounded-2xl p-6 shadow-2xl">
-                          {/* Header */}
                           <div className="flex items-center justify-between mb-5">
                             <div className="flex items-center gap-3">
                               <div className="relative w-10 h-10">
@@ -500,7 +500,6 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
                                 <p className="text-zinc-400 text-sm">AI is identifying your car...</p>
                               </div>
                             </div>
-                            {/* Progress indicator */}
                             <div className="w-32">
                               <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
                                 <motion.div
@@ -515,24 +514,19 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
                               </div>
                             </div>
                           </div>
-
-                          {/* Analysis grid - 1 column on mobile, 2 on desktop */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
+                          <div className="grid grid-cols-2 gap-3">
                             {ANALYSIS_STEPS.filter(s => s.key !== "masks").map((step) => {
                               const status = getStepStatus(step.key);
                               const value = getStepValue(step.key);
-
                               return (
                                 <motion.div
                                   key={step.key}
                                   initial={{ opacity: 0, y: 10 }}
                                   animate={{ opacity: 1, y: 0 }}
-                                  className={`flex items-center justify-between px-3 md:px-4 py-2 md:py-3 rounded-lg md:rounded-xl transition-all ${
-                                    status === "active"
-                                      ? "bg-blue-500/15 border border-blue-500/40"
-                                      : status === "complete"
-                                        ? "bg-zinc-800/60 border border-zinc-700/50"
-                                        : "bg-zinc-800/30 border border-zinc-700/30"
+                                  className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
+                                    status === "active" ? "bg-blue-500/15 border border-blue-500/40"
+                                      : status === "complete" ? "bg-zinc-800/60 border border-zinc-700/50"
+                                      : "bg-zinc-800/30 border border-zinc-700/30"
                                   }`}
                                 >
                                   <div className="flex items-center gap-3">
@@ -547,14 +541,10 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
                                     ) : (
                                       <div className="w-6 h-6 rounded-full border-2 border-zinc-600/50"></div>
                                     )}
-                                    <span className={`text-sm font-medium ${
-                                      status === "active" ? "text-blue-300" :
-                                      status === "complete" ? "text-zinc-300" : "text-zinc-500"
-                                    }`}>
+                                    <span className={`text-sm font-medium ${status === "active" ? "text-blue-300" : status === "complete" ? "text-zinc-300" : "text-zinc-500"}`}>
                                       {step.label}
                                     </span>
                                   </div>
-
                                   <div className="flex items-center min-w-[120px] justify-end">
                                     {value ? (
                                       step.key === "color" && typeof value === "object" ? (
@@ -562,25 +552,17 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
                                       ) : (
                                         <AnimatedValue value={String(value)} />
                                       )
-                                    ) : (
-                                      status === "active" ? (
-                                        <ScrambleText isActive={true} />
-                                      ) : status === "pending" ? (
-                                        <span className="font-mono text-xs text-zinc-600 tracking-wider">--------</span>
-                                      ) : null
-                                    )}
+                                    ) : status === "active" ? (
+                                      <ScrambleText isActive={true} />
+                                    ) : status === "pending" ? (
+                                      <span className="font-mono text-xs text-zinc-600 tracking-wider">--------</span>
+                                    ) : null}
                                   </div>
                                 </motion.div>
                               );
                             })}
                           </div>
-
-                          {/* AI Segmentation status - full width at bottom */}
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="mt-3 flex items-center justify-center gap-2 text-xs text-zinc-500"
-                          >
+                          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3 flex items-center justify-center gap-2 text-xs text-zinc-500">
                             {masksReady ? (
                               <>
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-green-400">
@@ -601,26 +583,19 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
                   )}
                 </AnimatePresence>
 
-                {/* Analysis complete summary */}
+                {/* Desktop only: Analysis complete summary overlay */}
                 {!isAnalyzing && analysis && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent p-6"
+                    className="hidden md:block absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent p-6"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div
-                          className="w-12 h-12 rounded-xl border-2 border-zinc-600 shadow-lg"
-                          style={{ backgroundColor: analysis.colorHex }}
-                        />
+                        <div className="w-12 h-12 rounded-xl border-2 border-zinc-600 shadow-lg" style={{ backgroundColor: analysis.colorHex }} />
                         <div>
-                          <p className="text-white font-bold text-xl">
-                            {analysis.year} {analysis.make} {analysis.model}
-                          </p>
-                          <p className="text-zinc-400">
-                            {analysis.color} • {analysis.bodyType} • {analysis.angle} view
-                          </p>
+                          <p className="text-white font-bold text-xl">{analysis.year} {analysis.make} {analysis.model}</p>
+                          <p className="text-zinc-400">{analysis.color} • {analysis.bodyType} • {analysis.angle} view</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 bg-green-500/20 px-4 py-2 rounded-full">
@@ -634,12 +609,108 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
                 )}
               </div>
 
-              {/* Action buttons below image */}
-              <div className="flex gap-3 mt-4">
+              {/* Mobile only: Vertical analysis list below image */}
+              <div className="md:hidden flex-1 flex flex-col mt-3 space-y-2 px-1">
+                {/* Analysis header */}
+                {isAnalyzing && (
+                  <div className="flex items-center gap-2 py-2">
+                    <div className="w-5 h-5 rounded-full border-2 border-blue-500 border-t-transparent animate-spin"></div>
+                    <span className="text-sm font-medium text-blue-400">Analyzing vehicle...</span>
+                  </div>
+                )}
+
+                {/* Each attribute on its own row */}
+                {ANALYSIS_STEPS.filter(s => s.key !== "masks").map((step) => {
+                  const status = getStepStatus(step.key);
+                  const value = getStepValue(step.key);
+                  return (
+                    <motion.div
+                      key={step.key}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
+                        status === "active" ? "bg-blue-500/15 border border-blue-500/40"
+                          : status === "complete" ? "bg-zinc-800/60 border border-zinc-700/50"
+                          : "bg-zinc-800/30 border border-zinc-700/30"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {status === "complete" ? (
+                          <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3 text-green-400">
+                              <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        ) : status === "active" ? (
+                          <div className="w-5 h-5 rounded-full border-2 border-blue-500 border-t-transparent animate-spin"></div>
+                        ) : (
+                          <div className="w-5 h-5 rounded-full border-2 border-zinc-600/50"></div>
+                        )}
+                        <span className={`text-sm font-medium ${status === "active" ? "text-blue-300" : status === "complete" ? "text-zinc-300" : "text-zinc-500"}`}>
+                          {step.label}
+                        </span>
+                      </div>
+                      <div className="flex items-center">
+                        {value ? (
+                          step.key === "color" && typeof value === "object" ? (
+                            <AnimatedValue value={value.name} colorHex={value.hex} />
+                          ) : (
+                            <AnimatedValue value={String(value)} />
+                          )
+                        ) : status === "active" ? (
+                          <ScrambleText isActive={true} />
+                        ) : null}
+                      </div>
+                    </motion.div>
+                  );
+                })}
+
+                {/* AI Segmentation row */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-lg ${
+                    masksReady ? "bg-zinc-800/60 border border-zinc-700/50" : "bg-zinc-800/30 border border-zinc-700/30"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    {masksReady ? (
+                      <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3 text-green-400">
+                          <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    ) : (
+                      <div className="w-5 h-5 rounded-full border-2 border-zinc-600 border-t-blue-400 animate-spin"></div>
+                    )}
+                    <span className={`text-sm font-medium ${masksReady ? "text-zinc-300" : "text-zinc-500"}`}>
+                      AI Segmentation
+                    </span>
+                  </div>
+                  {masksReady && <span className="text-sm text-green-400">Ready</span>}
+                </motion.div>
+
+                {/* Ready to customize row - mobile */}
+                {!isAnalyzing && analysis && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center justify-center gap-2 bg-green-500/20 border border-green-500/30 px-4 py-3 rounded-lg mt-2"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-green-400">
+                      <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-green-400 font-semibold">Ready to customize</span>
+                  </motion.div>
+                )}
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex gap-3 mt-4 px-1 md:px-0">
                 <button
                   onClick={handleClick}
                   disabled={isAnalyzing}
-                  className={`flex-1 px-6 py-3 rounded-xl font-medium transition-all ${
+                  className={`flex-1 px-4 md:px-6 py-3 rounded-xl font-medium transition-all text-sm md:text-base ${
                     isAnalyzing
                       ? "bg-zinc-800/50 text-zinc-500 cursor-not-allowed"
                       : "bg-zinc-800 hover:bg-zinc-700 text-white hover:scale-[1.02]"
@@ -650,7 +721,7 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
                 <button
                   onClick={handleStartCustomizing}
                   disabled={!canProceed}
-                  className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all ${
+                  className={`flex-1 px-4 md:px-6 py-3 rounded-xl font-semibold transition-all text-sm md:text-base ${
                     canProceed
                       ? "bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white shadow-lg shadow-red-500/25 hover:scale-[1.02]"
                       : "bg-red-600/30 text-white/50 cursor-not-allowed"
