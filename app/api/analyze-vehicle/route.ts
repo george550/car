@@ -25,22 +25,48 @@ export async function POST(request: NextRequest) {
         console.log("[analyze-vehicle] Starting vehicle analysis with GPT-4.1-mini...");
 
         // Use OpenAI GPT-4.1-mini for fast, accurate vehicle analysis
-        const prompt = `Analyze this car image and detect:
-1. Make, Model, Year, Color (with hex code), Body Type
-2. Camera angle relative to the vehicle
-3. Is the photo taken from an ELEVATED position (looking DOWN at the car)? Check if you can see a significant portion of the ROOF.
-4. Are the wheels clearly visible and not heavily distorted?
+        const prompt = `You are analyzing a car photo. Follow these steps:
 
-CRITICAL: Photos taken from HIGH/ELEVATED angles (looking down at the car, drone shots, hillside shots) produce poor AI results. If you can see a lot of the car's roof or the camera is clearly above the vehicle looking down, set "angleProblematic" to true.
+STEP 1: Identify the vehicle
+- Make, Model, Year, Color (with hex code), Body Type
+- Horizontal angle: Front, Side, Front 3/4, Rear 3/4, Rear
 
-Respond in JSON format only:
-{"make":"string","model":"string","year":"string","color":"string","colorHex":"#hexcode","bodyType":"string","angle":"string","cameraElevation":"eye-level|slightly-elevated|high-angle|aerial","angleProblematic":false,"angleReason":""}
+STEP 2: CRITICAL - Check camera elevation (THIS IS THE MOST IMPORTANT STEP)
+Look at the car's ROOF:
+- Can you see the roof? How much of it?
+- Is the camera positioned ABOVE the vehicle looking DOWN?
+- Are you looking at the car from an elevated position (hillside, building, drone)?
 
-- cameraElevation: "eye-level" (camera at car height), "slightly-elevated" (standing next to car), "high-angle" (looking down, roof visible), "aerial" (drone/extreme angle)
-- angleProblematic: true if high-angle or aerial (roof is prominent, looking down at vehicle)
-- angleReason: brief explanation of why angle is problematic (if true)`;
+IF YOU CAN SEE A SIGNIFICANT PORTION OF THE ROOF, THE PHOTO IS PROBLEMATIC.
 
-        const systemPrompt = "You are a car expert and photography analyst. Identify vehicles accurately and detect problematic camera angles. Always respond with valid JSON only, no other text.";
+Examples:
+- Roof clearly visible + looking down = HIGH-ANGLE or AERIAL = angleProblematic: true
+- Only see windshield/hood normally = EYE-LEVEL = angleProblematic: false
+- Standing next to car = SLIGHTLY-ELEVATED = angleProblematic: false
+
+STEP 3: Respond in JSON format ONLY (no other text):
+{
+  "make": "string",
+  "model": "string",
+  "year": "string",
+  "color": "string",
+  "colorHex": "#hexcode",
+  "bodyType": "string",
+  "angle": "Front|Side|Front 3/4|Rear 3/4|Rear",
+  "cameraElevation": "eye-level|slightly-elevated|high-angle|aerial",
+  "angleProblematic": true/false,
+  "angleReason": "explanation if problematic"
+}
+
+Camera elevation definitions:
+- "eye-level": Camera at car height, minimal roof visible
+- "slightly-elevated": Standing next to car, slight roof visibility OK
+- "high-angle": Looking down, ROOF IS CLEARLY VISIBLE - SET angleProblematic=true
+- "aerial": Drone/extreme overhead - SET angleProblematic=true
+
+REMEMBER: If roof is prominent/clearly visible, ALWAYS set angleProblematic=true`;
+
+        const systemPrompt = "You are a car photography analyst. Your PRIMARY task is detecting elevated camera angles. If you can see the car's roof clearly, the angle is problematic. Be strict. Always respond with valid JSON only.";
 
         // Stream the response and collect it
         let responseText = "";
@@ -185,19 +211,35 @@ Respond in JSON format only:
             analysis.angle = "Side"; // Default for most car photos
         }
 
-        // Fallback detection for camera elevation if not set by JSON
-        if (!analysis.cameraElevation || analysis.cameraElevation === "eye-level") {
-            if (text.includes("aerial") || text.includes("drone") || text.includes("bird") || text.includes("overhead")) {
-                analysis.cameraElevation = "aerial";
-                analysis.angleProblematic = true;
-                analysis.angleReason = "Aerial/overhead angle - camera is far above the vehicle";
-            } else if (text.includes("high") || text.includes("elevated") || text.includes("above") || text.includes("looking down") || text.includes("roof visible")) {
+        // Safety check: Detect problematic angles from raw response text
+        // This runs AFTER JSON parsing to catch cases the model might miss
+        const safetyKeywords = {
+            aerial: ["aerial", "drone", "bird's eye", "overhead", "from above"],
+            highAngle: ["roof visible", "roof is visible", "see the roof", "looking down", "elevated angle", "high angle", "top of the car", "top of the vehicle"],
+        };
+
+        // Check for aerial keywords
+        if (safetyKeywords.aerial.some(keyword => text.includes(keyword))) {
+            analysis.cameraElevation = "aerial";
+            analysis.angleProblematic = true;
+            analysis.angleReason = "Aerial/overhead angle detected - camera is far above the vehicle";
+            console.log("[analyze-vehicle] Safety check: Aerial angle detected from keywords");
+        }
+        // Check for high-angle keywords (roof visibility)
+        else if (safetyKeywords.highAngle.some(keyword => text.includes(keyword))) {
+            analysis.cameraElevation = "high-angle";
+            analysis.angleProblematic = true;
+            analysis.angleReason = "High angle detected - camera is elevated, roof is clearly visible";
+            console.log("[analyze-vehicle] Safety check: High angle detected from keywords");
+        }
+
+        // Fallback detection for camera elevation if not set by JSON or safety check
+        if (!analysis.angleProblematic && (!analysis.cameraElevation || analysis.cameraElevation === "eye-level")) {
+            if (text.includes("elevated") || text.includes("above")) {
                 analysis.cameraElevation = "high-angle";
                 analysis.angleProblematic = true;
-                analysis.angleReason = "High angle - camera is elevated above the vehicle, roof is visible";
-            } else if (text.includes("low") || text.includes("ground level") || text.includes("looking up")) {
-                analysis.cameraElevation = "slightly-elevated";
-                analysis.angleProblematic = false;
+                analysis.angleReason = "Elevated camera position detected";
+                console.log("[analyze-vehicle] Fallback: High angle detected");
             }
         }
 
