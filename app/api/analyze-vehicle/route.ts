@@ -25,11 +25,22 @@ export async function POST(request: NextRequest) {
         console.log("[analyze-vehicle] Starting vehicle analysis with GPT-4.1-mini...");
 
         // Use OpenAI GPT-4.1-mini for fast, accurate vehicle analysis
-        const prompt = `Analyze this car image and detect: Make, Model, Year, Color (with hex code), Body Type, Photo Angle.
-Respond in JSON format only:
-{"make":"string","model":"string","year":"string","color":"string","colorHex":"#hexcode","bodyType":"string","angle":"string"}`;
+        const prompt = `Analyze this car image and detect:
+1. Make, Model, Year, Color (with hex code), Body Type
+2. Camera angle relative to the vehicle
+3. Is the photo taken from an ELEVATED position (looking DOWN at the car)? Check if you can see a significant portion of the ROOF.
+4. Are the wheels clearly visible and not heavily distorted?
 
-        const systemPrompt = "You are a car expert. Identify vehicles accurately. Always respond with valid JSON only, no other text.";
+CRITICAL: Photos taken from HIGH/ELEVATED angles (looking down at the car, drone shots, hillside shots) produce poor AI results. If you can see a lot of the car's roof or the camera is clearly above the vehicle looking down, set "angleProblematic" to true.
+
+Respond in JSON format only:
+{"make":"string","model":"string","year":"string","color":"string","colorHex":"#hexcode","bodyType":"string","angle":"string","cameraElevation":"eye-level|slightly-elevated|high-angle|aerial","angleProblematic":false,"angleReason":""}
+
+- cameraElevation: "eye-level" (camera at car height), "slightly-elevated" (standing next to car), "high-angle" (looking down, roof visible), "aerial" (drone/extreme angle)
+- angleProblematic: true if high-angle or aerial (roof is prominent, looking down at vehicle)
+- angleReason: brief explanation of why angle is problematic (if true)`;
+
+        const systemPrompt = "You are a car expert and photography analyst. Identify vehicles accurately and detect problematic camera angles. Always respond with valid JSON only, no other text.";
 
         // Stream the response and collect it
         let responseText = "";
@@ -54,6 +65,9 @@ Respond in JSON format only:
             colorHex: "#808080",
             bodyType: "Unknown",
             angle: "Unknown",
+            cameraElevation: "eye-level" as "eye-level" | "slightly-elevated" | "high-angle" | "aerial",
+            angleProblematic: false,
+            angleReason: "",
             confidence: "low",
         };
 
@@ -169,6 +183,22 @@ Respond in JSON format only:
             analysis.angle = "Rear";
         } else {
             analysis.angle = "Side"; // Default for most car photos
+        }
+
+        // Fallback detection for camera elevation if not set by JSON
+        if (!analysis.cameraElevation || analysis.cameraElevation === "eye-level") {
+            if (text.includes("aerial") || text.includes("drone") || text.includes("bird") || text.includes("overhead")) {
+                analysis.cameraElevation = "aerial";
+                analysis.angleProblematic = true;
+                analysis.angleReason = "Aerial/overhead angle - camera is far above the vehicle";
+            } else if (text.includes("high") || text.includes("elevated") || text.includes("above") || text.includes("looking down") || text.includes("roof visible")) {
+                analysis.cameraElevation = "high-angle";
+                analysis.angleProblematic = true;
+                analysis.angleReason = "High angle - camera is elevated above the vehicle, roof is visible";
+            } else if (text.includes("low") || text.includes("ground level") || text.includes("looking up")) {
+                analysis.cameraElevation = "slightly-elevated";
+                analysis.angleProblematic = false;
+            }
         }
 
         const elapsed = Date.now() - startTime;
