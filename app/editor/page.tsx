@@ -112,6 +112,7 @@ export default function EditorPage() {
     const [highlightType, setHighlightType] = useState<"wheel" | "paint" | null>(null);
     const [tooltip, setTooltip] = useState<{ text: string | null; top: number; title: string }>({ text: null, top: 0, title: "" });
     const [showExportMenu, setShowExportMenu] = useState(false);
+    const [showImageZoom, setShowImageZoom] = useState(false);
 
     const EXPORT_SIZES = [
         { label: "Small", width: 1024, height: 768 },
@@ -528,40 +529,36 @@ export default function EditorPage() {
             <main className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
                 {/* Canvas Section - Shows first on mobile */}
                 <section className="flex-1 bg-zinc-950/50 flex flex-col relative z-0 order-1 md:order-2 min-h-[40vh] md:min-h-0">
-                    {/* Original/Tuned toggle - only show when image is loaded */}
-                    {originalImage && (
-                        <div className="p-2 md:p-4">
-                            {(selectedWheel || selectedPaint) ? (
-                                <div className={`inline-flex bg-zinc-900 rounded-lg p-1 ${isProcessing ? "opacity-50 pointer-events-none" : ""}`}>
-                                    <button
-                                        onClick={() => setViewingOriginal(true)}
-                                        className={`px-3 md:px-4 py-1.5 md:py-2 rounded-md text-xs md:text-sm font-medium transition-all ${
-                                            viewingOriginal
-                                                ? "bg-zinc-800 text-white shadow-sm"
-                                                : "text-zinc-500 hover:text-zinc-300"
-                                        }`}
-                                    >
-                                        Original
-                                    </button>
-                                    <button
-                                        onClick={() => setViewingOriginal(false)}
-                                        className={`px-3 md:px-4 py-1.5 md:py-2 rounded-md text-xs md:text-sm font-medium transition-all ${
-                                            !viewingOriginal
-                                                ? "bg-zinc-800 text-white shadow-sm"
-                                                : "text-zinc-500 hover:text-zinc-300"
-                                        }`}
-                                    >
-                                        Tuned
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="h-[36px] md:h-[44px]" />
-                            )}
+                    {/* Original/Tuned toggle - only show when image is loaded AND has modifications */}
+                    {originalImage && (selectedWheel || selectedPaint) && (
+                        <div className="p-1 md:p-4">
+                            <div className={`inline-flex bg-zinc-900 rounded-lg p-1 ${isProcessing ? "opacity-50 pointer-events-none" : ""}`}>
+                                <button
+                                    onClick={() => setViewingOriginal(true)}
+                                    className={`px-3 md:px-4 py-1.5 md:py-2 rounded-md text-xs md:text-sm font-medium transition-all ${
+                                        viewingOriginal
+                                            ? "bg-zinc-800 text-white shadow-sm"
+                                            : "text-zinc-500 hover:text-zinc-300"
+                                    }`}
+                                >
+                                    Original
+                                </button>
+                                <button
+                                    onClick={() => setViewingOriginal(false)}
+                                    className={`px-3 md:px-4 py-1.5 md:py-2 rounded-md text-xs md:text-sm font-medium transition-all ${
+                                        !viewingOriginal
+                                            ? "bg-zinc-800 text-white shadow-sm"
+                                            : "text-zinc-500 hover:text-zinc-300"
+                                    }`}
+                                >
+                                    Tuned
+                                </button>
+                            </div>
                         </div>
                     )}
 
-                    {/* Image container */}
-                    <div className={`flex-1 flex items-center justify-center ${originalImage ? "px-2 pb-2 md:px-6 md:pb-6" : "p-4 md:p-6"}`}>
+                    {/* Image container - minimal gaps on mobile */}
+                    <div className={`flex-1 flex items-center justify-center ${originalImage ? "px-0 pb-0 md:px-6 md:pb-6" : "p-4 md:p-6"}`}>
                         {!originalImage ? (
                             <FileUpload
                                 onSuccess={(url) => {
@@ -590,17 +587,27 @@ export default function EditorPage() {
                                 }}
                             />
                         ) : (
-                            <EditorCanvas
-                                ref={canvasRef}
-                                originalImage={originalImage}
-                                wheelLayer={currentWheelLayer}
-                                paintLayer={currentPaintLayer}
-                                wheelVisible={wheelVisible && !viewingOriginal}
-                                paintVisible={paintVisible && !viewingOriginal}
-                                wheelMask={wheelMask}
-                                bodyMask={bodyMask}
-                                highlightType={highlightType}
-                            />
+                            <div
+                                className="w-full h-full cursor-zoom-in md:cursor-default"
+                                onClick={() => {
+                                    // Only open zoom on mobile
+                                    if (window.innerWidth < 768) {
+                                        setShowImageZoom(true);
+                                    }
+                                }}
+                            >
+                                <EditorCanvas
+                                    ref={canvasRef}
+                                    originalImage={originalImage}
+                                    wheelLayer={currentWheelLayer}
+                                    paintLayer={currentPaintLayer}
+                                    wheelVisible={wheelVisible && !viewingOriginal}
+                                    paintVisible={paintVisible && !viewingOriginal}
+                                    wheelMask={wheelMask}
+                                    bodyMask={bodyMask}
+                                    highlightType={highlightType}
+                                />
+                            </div>
                         )}
                     </div>
 
@@ -630,8 +637,8 @@ export default function EditorPage() {
                     )}
                 </section>
 
-                {/* Options Panel - Bottom sheet on mobile, sidebar on desktop */}
-                <aside className="w-full md:w-80 border-t md:border-t-0 md:border-r border-zinc-800 bg-zinc-950 flex flex-col z-10 relative order-2 md:order-1 max-h-[50vh] md:max-h-none">
+                {/* Options Panel - Bottom sheet on mobile (hidden until image loaded), sidebar on desktop */}
+                <aside className={`w-full md:w-80 border-t md:border-t-0 md:border-r border-zinc-800 bg-zinc-950 flex flex-col z-10 relative order-2 md:order-1 max-h-[50vh] md:max-h-none ${!originalImage ? "hidden md:flex" : "flex"}`}>
                     <div className="p-3 md:p-4 border-b border-zinc-800">
                         <div className="flex bg-zinc-900 rounded-lg p-1">
                             {[
@@ -872,6 +879,55 @@ export default function EditorPage() {
                     <p className="text-zinc-300 text-sm leading-relaxed font-normal opacity-90">{tooltip.text}</p>
                 </div>
             )}
+
+            {/* Fullscreen Image Zoom Modal - Mobile only */}
+            <AnimatePresence>
+                {showImageZoom && originalImage && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[300] bg-black flex items-center justify-center md:hidden"
+                        onClick={() => setShowImageZoom(false)}
+                    >
+                        {/* Close button */}
+                        <button
+                            onClick={() => setShowImageZoom(false)}
+                            className="absolute top-4 right-4 z-10 bg-zinc-800/80 backdrop-blur p-2 rounded-full"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-6 h-6">
+                                <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                            </svg>
+                        </button>
+
+                        {/* Pinch-zoom container */}
+                        <div
+                            className="w-full h-full overflow-auto touch-pinch-zoom"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="min-w-full min-h-full flex items-center justify-center p-4">
+                                {/* Render canvas content as image for zooming */}
+                                {canvasRef.current && (
+                                    <img
+                                        src={canvasRef.current.exportImage("png") || originalImage}
+                                        alt="Zoomed car"
+                                        className="max-w-none w-auto h-auto"
+                                        style={{
+                                            maxWidth: "200%",
+                                            touchAction: "pinch-zoom"
+                                        }}
+                                    />
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Hint text */}
+                        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-zinc-400 text-sm bg-zinc-900/80 backdrop-blur px-4 py-2 rounded-full">
+                            Pinch to zoom • Tap to close
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

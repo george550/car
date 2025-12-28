@@ -428,9 +428,10 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
             </div>
 
             {/* Sample images section */}
-            <div className="mt-8 pt-6 border-t border-zinc-800">
-              <p className="text-sm text-zinc-400 mb-4 text-center">Or select one of the following images to start</p>
-              <div className="flex justify-center gap-4">
+            <div className="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-zinc-800">
+              <p className="text-sm text-zinc-400 mb-3 md:mb-4 text-center">Or select one of the following images to start</p>
+              {/* 2 per row on mobile, 4 on desktop */}
+              <div className="grid grid-cols-2 md:flex md:justify-center gap-3 md:gap-4">
                 {sampleImages.map((src, index) => (
                   <button
                     key={src}
@@ -438,7 +439,7 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
                       e.stopPropagation();
                       handleSampleClick(src);
                     }}
-                    className="relative w-44 h-28 rounded-lg overflow-hidden border-2 border-zinc-700 hover:border-red-500 transition-colors group"
+                    className="relative aspect-video md:w-44 md:h-28 rounded-lg overflow-hidden border-2 border-zinc-700 hover:border-red-500 active:border-red-500 transition-colors group"
                   >
                     <Image
                       src={src}
@@ -515,8 +516,8 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
                             </div>
                           </div>
 
-                          {/* Analysis grid - 2 columns for wider layout */}
-                          <div className="grid grid-cols-2 gap-3">
+                          {/* Analysis grid - 1 column on mobile, 2 on desktop */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
                             {ANALYSIS_STEPS.filter(s => s.key !== "masks").map((step) => {
                               const status = getStepStatus(step.key);
                               const value = getStepValue(step.key);
@@ -526,7 +527,7 @@ export default function FileUpload({ onUpload, onSuccess }: FileUploadProps) {
                                   key={step.key}
                                   initial={{ opacity: 0, y: 10 }}
                                   animate={{ opacity: 1, y: 0 }}
-                                  className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
+                                  className={`flex items-center justify-between px-3 md:px-4 py-2 md:py-3 rounded-lg md:rounded-xl transition-all ${
                                     status === "active"
                                       ? "bg-blue-500/15 border border-blue-500/40"
                                       : status === "complete"
